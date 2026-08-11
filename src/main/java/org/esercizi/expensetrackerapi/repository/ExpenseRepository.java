@@ -1,4 +1,7 @@
 package org.esercizi.expensetrackerapi.repository;
 
-public interface ExpenseRepository {
+import org.esercizi.expensetrackerapi.model.Expense;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ExpenseRepository extends JpaRepository<Expense, Integer>{
 }
