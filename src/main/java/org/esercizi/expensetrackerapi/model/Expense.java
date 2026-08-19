@@ -3,6 +3,9 @@ package org.esercizi.expensetrackerapi.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,22 +16,26 @@ import java.time.LocalDate;
 public class Expense {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @NotBlank
     private String title;
 
+    @Positive
     private BigDecimal amount;
 
+    @NotBlank
     private ExpenseCategory category;
 
+    @NotNull
+    @PastOrPresent
     private LocalDate date;
 
     public Expense() {
 
     }
 
-    public Expense(Integer id, String title, BigDecimal amount, ExpenseCategory category, LocalDate date) {
+    public Expense(Long id, String title, BigDecimal amount, ExpenseCategory category, LocalDate date) {
         this.id = id;
         this.title = title;
         this.amount = amount;
@@ -36,11 +43,11 @@ public class Expense {
         this.date = date;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
