@@ -24,7 +24,11 @@ public class Expense {
     @Positive
     private BigDecimal amount;
 
-    @NotBlank
+
+    private String description;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
     private ExpenseCategory category;
 
     @NotNull
@@ -35,10 +39,11 @@ public class Expense {
 
     }
 
-    public Expense(Long id, String title, BigDecimal amount, ExpenseCategory category, LocalDate date) {
+    public Expense(Long id, String title, BigDecimal amount, String description, ExpenseCategory category, LocalDate date) {
         this.id = id;
         this.title = title;
         this.amount = amount;
+        this.description = description;
         this.category = category;
         this.date = date;
     }
@@ -65,6 +70,14 @@ public class Expense {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public ExpenseCategory getCategory() {

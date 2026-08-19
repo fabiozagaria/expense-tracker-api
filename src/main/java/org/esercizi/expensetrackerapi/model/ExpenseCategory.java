@@ -1,15 +1,15 @@
 package org.esercizi.expensetrackerapi.model;
 
 public enum ExpenseCategory {
-    Groceries,
-    Car,
-    Gift,
-    Installments,
-    Loan,
-    Health,
-    Transport,
-    Bills,
-    Housing,
-    Leisure,
-    Other
+    groceries,
+    car,
+    gift,
+    installments,
+    loan,
+    health,
+    transport,
+    bills,
+    housing,
+    leisure,
+    other
 }
