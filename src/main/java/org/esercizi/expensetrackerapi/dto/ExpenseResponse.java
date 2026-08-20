@@ -9,6 +9,7 @@ public record ExpenseResponse(
         Long id,
         String title,
         BigDecimal amount,
+        String description,
         ExpenseCategory category,
         LocalDate date
 ) {

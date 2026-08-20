@@ -3,7 +3,7 @@ package org.esercizi.expensetrackerapi.model;
 public enum ExpenseCategory {
     groceries,
     car,
-    gift,
+    gifts,
     installments,
     loan,
     health,

@@ -100,6 +100,7 @@ public class ExpenseService {
                 expense.getId(),
                 expense.getTitle(),
                 expense.getAmount(),
+                expense.getDescription(),
                 expense.getCategory(),
                 expense.getDate()
         );

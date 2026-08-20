@@ -10,18 +10,18 @@ import java.time.LocalDate;
 
 public record ExpensePatchRequest(
 
-        @Size(min = 3, max = 25 )
+        @Size(min = 3, max = 15 )
         String title,
 
 
         @Positive
         BigDecimal amount,
 
-        @Size(min = 10, max = 50)
+        @Size(max = 30)
         String description,
 
 
-        @Enumerated(EnumType.STRING)
+
         ExpenseCategory category,
 
 
