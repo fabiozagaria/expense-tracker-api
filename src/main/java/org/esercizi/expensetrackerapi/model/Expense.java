@@ -16,13 +16,13 @@ public class Expense {
     private Long id;
 
     @NotBlank
-    @Size(min = 3, max = 25)
+    @Size(min = 3, max = 15)
     private String title;
 
     @Positive
     private BigDecimal amount;
 
-
+    @Size(max = 30)
     private String description;
 
     @NotNull
