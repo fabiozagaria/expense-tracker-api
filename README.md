@@ -7,31 +7,34 @@ Backend Spring Boot del progetto full stack **Gestionale Spese**. L'obiettivo è
 
 ## Stato del progetto
 
-**In sviluppo — struttura iniziale.**
+**In sviluppo — primo verticale API.**
 
-Il dominio delle spese, il repository JPA e la configurazione MySQL sono presenti. Controller, service, gestione degli errori ed endpoint REST sono ancora da implementare: il backend non è ancora utilizzabile dal frontend come API completa.
+Il dominio delle spese, la persistenza JPA e il primo endpoint di lettura sono presenti. Il controller espone attualmente soltanto l'elenco delle spese; DTO e metodi service per creazione, sostituzione completa e aggiornamento parziale sono in lavorazione e non costituiscono ancora un CRUD REST completo.
 
 ## Implementato
 
 - progetto Spring Boot 4.1 con Java 21;
-- entità JPA `Expense`;
-- categorie di spesa tramite `ExpenseCategory`;
-- persistenza predisposta con Spring Data JPA;
-- `ExpenseRepository` basato su `JpaRepository`;
+- entità JPA `Expense` con importo `BigDecimal`, descrizione, categoria e data;
+- categorie di spesa tramite `ExpenseCategory` salvate come stringhe;
+- persistenza con Spring Data JPA e `ExpenseRepository`;
+- DTO separati per creazione, PUT, PATCH e risposta;
+- `ExpenseService` con lettura, mapping DTO/entity e primi metodi transazionali;
+- `GET /api/expenses` per recuperare l'elenco delle spese;
 - connessione MySQL configurabile tramite variabile d'ambiente;
 - serializzazione delle date ISO con Jackson;
-- strutture iniziali per controller, service ed error handling;
+- strutture iniziali per eccezioni ed error handling;
 - test di avvio del contesto Spring.
 
 ## Modello attuale
 
-| Campo      | Tipo              | Note                                  |
-| ---------- | ----------------- | ------------------------------------- |
-| `id`       | `Integer`         | Chiave primaria generata dal database |
-| `title`    | `String`          | Obbligatorio tramite `@NotBlank`      |
-| `amount`   | `BigDecimal`      | Importo della spesa                   |
-| `category` | `ExpenseCategory` | Categoria della spesa                 |
-| `date`     | `LocalDate`       | Data del movimento                    |
+| Campo | Tipo | Note |
+| --- | --- | --- |
+| `id` | `Long` | Chiave primaria generata dal database |
+| `title` | `String` | Obbligatorio e validato |
+| `amount` | `BigDecimal` | Importo positivo |
+| `description` | `String` | Descrizione facoltativa con lunghezza limitata |
+| `category` | `ExpenseCategory` | Enum persistito come stringa |
+| `date` | `LocalDate` | Data del movimento |
 
 ## Tecnologie
 
@@ -44,7 +47,7 @@ Il dominio delle spese, il repository JPA e la configurazione MySQL sono present
 - MySQL
 - Maven Wrapper
 
-## Architettura prevista
+## Architettura attuale
 
 ```mermaid
 flowchart LR
@@ -52,23 +55,18 @@ flowchart LR
     Controller --> Service
     Service --> Repository
     Repository --> MySQL
-    Controller --> ErrorHandler
 ```
 
-## Contratto REST obiettivo
+## Stato degli endpoint REST
 
-Gli endpoint seguenti rappresentano il contratto da implementare e allineare con il frontend:
-
-| Metodo   | Endpoint             | Descrizione            |
-| -------- | -------------------- | ---------------------- |
-| `GET`    | `/api/expenses`      | Elenco delle spese     |
-| `GET`    | `/api/expenses/{id}` | Dettaglio di una spesa |
-| `POST`   | `/api/expenses`      | Creazione              |
-| `PUT`    | `/api/expenses/{id}` | Aggiornamento completo |
-| `PATCH`  | `/api/expenses/{id}` | Aggiornamento parziale |
-| `DELETE` | `/api/expenses/{id}` | Eliminazione           |
-
-> Questi endpoint non sono ancora esposti dall'attuale `ExpenseController`.
+| Metodo | Endpoint | Stato |
+| --- | --- | --- |
+| `GET` | `/api/expenses` | Implementato |
+| `GET` | `/api/expenses/{id}` | Da esporre |
+| `POST` | `/api/expenses` | Service/DTO in lavorazione, endpoint non esposto |
+| `PUT` | `/api/expenses/{id}` | Service/DTO in lavorazione, endpoint non esposto |
+| `PATCH` | `/api/expenses/{id}` | Service/DTO in lavorazione, endpoint non esposto |
+| `DELETE` | `/api/expenses/{id}` | Da implementare |
 
 ## Configurazione locale
 
@@ -107,16 +105,17 @@ Il servizio userà `http://localhost:8080`.
 ./mvnw test
 ```
 
+Al momento è presente principalmente il test di caricamento del contesto; i test comportamentali devono ancora essere aggiunti.
+
 ## Prossimi sviluppi
 
-1. definire DTO di richiesta e risposta allineati al frontend, incluso il campo `description`;
-2. completare validazioni di importo, categoria e data;
-3. salvare le categorie come stringhe nel database;
-4. implementare service e CRUD REST;
-5. aggiungere eccezioni applicative e un modello `APIError` completo;
-6. configurare CORS e ambienti senza credenziali nel repository;
-7. aggiungere test di repository, service e controller;
-8. introdurre in seguito autenticazione e autorizzazione.
+1. rifinire il contratto dei DTO e le regole del dominio `Expense`;
+2. completare mapping, validazione ed error handling;
+3. esporre GET per id, POST, PUT, PATCH e DELETE nel controller;
+4. aggiungere test JUnit/Mockito per service e controller;
+5. configurare CORS e ambienti senza credenziali nel repository;
+6. collegare l'intero verticale al frontend;
+7. introdurre in seguito autenticazione e autorizzazione.
 
 ## Autore
 
