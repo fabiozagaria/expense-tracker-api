@@ -26,6 +26,20 @@ public class ExpenseService {
     }
 
     public List<Expense> findAll() {
+        Object dbInfo = entityManager.createNativeQuery(
+                "SELECT DATABASE(), @@hostname, @@port, @@server_uuid"
+        ).getSingleResult();
+
+        System.out.println(dbInfo);
+
+        Object columns = entityManager.createNativeQuery("""
+    SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY ORDINAL_POSITION)
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'expenses'
+    """).getSingleResult();
+
+        System.out.println(columns);
        return  expenseRepository.findAll();
 
 
