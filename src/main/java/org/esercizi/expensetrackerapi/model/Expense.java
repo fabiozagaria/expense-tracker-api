@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class Expense {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idExpenses")
+    @Column(name = "id_expenses")
     private Long id;
 
     @NotBlank
