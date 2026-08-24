@@ -90,6 +90,18 @@ public class ExpenseService {
         return expenseUpdate;
     }
 
+    @Transactional
+    public Expense deleteById(long id) {
+        Expense expense = entityManager.find(Expense.class, id);
+
+        if(expense == null) {
+            throw new NotFoundExpenseException("Expense not found. Delete rollback");
+        }
+
+        entityManager.remove(expense);
+        return expense;
+    }
+
 
     //MAPPER
     public ExpenseResponse toExpenseResponse(Expense expense) {
