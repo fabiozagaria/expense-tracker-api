@@ -45,52 +45,49 @@ public class ExpenseService {
         return newExpense;
 
     }
+    
 
     @Transactional
-    public Expense putExpenseById(long id, ExpenseUpdateRequest request) {
-        Expense updateExpense = findById(id);
-        entityManager.persist(updateExpense);
-
-        updateExpense.setTitle(request.title());
-        updateExpense.setAmount(request.amount());
-        updateExpense.setCategory(request.category());
-        updateExpense.setDate(request.date());
-        updateExpense.setDescription(validStringVariableIstance(request.description(), "description"));
-
-
-
-        return updateExpense;
-
-
+    public Expense putExpense(long id, ExpenseUpdateRequest request) {
+       Expense expenseUpdate = entityManager.find(Expense.class, id);
+       if(expenseUpdate == null)
+           throw new NotFoundExpenseException("Expense not found. Update rollback");
+        expenseUpdate.setTitle(request.title());
+        expenseUpdate.setAmount(request.amount());
+        expenseUpdate.setCategory(request.category());
+        expenseUpdate.setDate(request.date());
+        expenseUpdate.setDescription(validStringVariableIstance(request.description(), "description"));
+        return expenseUpdate;
     }
 
     @Transactional
     public Expense patchExpenseById(long id, ExpensePatchRequest request) {
-        Expense patchExpense = findById(id);
-        entityManager.persist(patchExpense);
+        Expense expenseUpdate = entityManager.find(Expense.class, id);
+        if(expenseUpdate == null)
+            throw new NotFoundExpenseException("Expense not found. Update rollback");
 
         if(request.title() != null) {
-            patchExpense.setTitle(request.title().trim());
+            expenseUpdate.setTitle(request.title().trim());
         }
 
         if(request.amount() != null) {
-            patchExpense.setAmount(request.amount());
+            expenseUpdate.setAmount(request.amount());
         }
 
         if(request.category() != null) {
-            patchExpense.setCategory(request.category());
+            expenseUpdate.setCategory(request.category());
         }
 
         if(request.date() != null) {
-            patchExpense.setDate(request.date());
+            expenseUpdate.setDate(request.date());
         }
 
         if (request.description() != null) {
             String descriptionValid = validStringVariableIstance(request.description(), "description");
-            patchExpense.setDescription(descriptionValid);
+            expenseUpdate.setDescription(descriptionValid);
         }
 
-        return patchExpense;
+        return expenseUpdate;
     }
 
 
@@ -117,13 +114,18 @@ public class ExpenseService {
     }
 
     private String validStringVariableIstance(String value, String variableIstanceName) throws IllegalArgumentException {
-
+            //se null, assente
+            if(value == null) {
+                return null;
+            }
+            //se vuoto, no
             if (value.isBlank()) {
                 throw new IllegalArgumentException(String.format("""
                         %s format not valid
                         """,
                         variableIstanceName));
             } else {
+                //se con valore idoneo, ok
                 return value.trim();
             }
 
