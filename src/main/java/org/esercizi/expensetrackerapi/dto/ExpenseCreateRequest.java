@@ -1,9 +1,7 @@
 package org.esercizi.expensetrackerapi.dto;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.*;
-import org.esercizi.expensetrackerapi.model.ExpenseCategory;
+import org.esercizi.expensetrackerapi.model.expense.ExpenseCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

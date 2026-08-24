@@ -6,7 +6,7 @@ import org.esercizi.expensetrackerapi.dto.ExpenseCreateRequest;
 import org.esercizi.expensetrackerapi.dto.ExpensePatchRequest;
 import org.esercizi.expensetrackerapi.dto.ExpenseResponse;
 import org.esercizi.expensetrackerapi.dto.ExpenseUpdateRequest;
-import org.esercizi.expensetrackerapi.model.Expense;
+import org.esercizi.expensetrackerapi.model.expense.Expense;
 import org.esercizi.expensetrackerapi.services.ExpenseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

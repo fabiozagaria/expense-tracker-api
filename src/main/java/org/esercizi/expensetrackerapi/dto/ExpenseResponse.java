@@ -1,6 +1,6 @@
 package org.esercizi.expensetrackerapi.dto;
 
-import org.esercizi.expensetrackerapi.model.ExpenseCategory;
+import org.esercizi.expensetrackerapi.model.expense.ExpenseCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

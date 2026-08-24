@@ -6,7 +6,7 @@ import org.esercizi.expensetrackerapi.dto.ExpensePatchRequest;
 import org.esercizi.expensetrackerapi.dto.ExpenseResponse;
 import org.esercizi.expensetrackerapi.dto.ExpenseUpdateRequest;
 import org.esercizi.expensetrackerapi.exceptions.NotFoundExpenseException;
-import org.esercizi.expensetrackerapi.model.Expense;
+import org.esercizi.expensetrackerapi.model.expense.Expense;
 import org.esercizi.expensetrackerapi.repository.ExpenseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,20 +26,6 @@ public class ExpenseService {
     }
 
     public List<Expense> findAll() {
-        Object dbInfo = entityManager.createNativeQuery(
-                "SELECT DATABASE(), @@hostname, @@port, @@server_uuid"
-        ).getSingleResult();
-
-        System.out.println(dbInfo);
-
-        Object columns = entityManager.createNativeQuery("""
-    SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY ORDINAL_POSITION)
-    FROM information_schema.columns
-    WHERE table_schema = DATABASE()
-      AND table_name = 'expenses'
-    """).getSingleResult();
-
-        System.out.println(columns);
        return  expenseRepository.findAll();
 
 

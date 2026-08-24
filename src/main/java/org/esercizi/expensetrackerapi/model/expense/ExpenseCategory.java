@@ -1,4 +1,4 @@
-package org.esercizi.expensetrackerapi.model;
+package org.esercizi.expensetrackerapi.model.expense;
 
 public enum ExpenseCategory {
     groceries,
