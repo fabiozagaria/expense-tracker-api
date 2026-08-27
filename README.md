@@ -7,22 +7,23 @@ Backend Spring Boot del progetto full stack **Gestionale Spese**. L'obiettivo è
 
 ## Stato del progetto
 
-**In sviluppo — primo verticale API.**
+**In sviluppo — CRUD delle spese completato.**
 
-Il dominio delle spese, la persistenza JPA e il primo endpoint di lettura sono presenti. Il controller espone attualmente soltanto l'elenco delle spese; DTO e metodi service per creazione, sostituzione completa e aggiornamento parziale sono in lavorazione e non costituiscono ancora un CRUD REST completo.
+Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione. La pubblicazione dell'API, l'integrazione completa con il frontend, entrate, utenti e autenticazione restano in evoluzione.
 
 ## Implementato
 
 - progetto Spring Boot 4.1 con Java 21;
 - entità JPA `Expense` con importo `BigDecimal`, descrizione, categoria e data;
 - categorie di spesa tramite `ExpenseCategory` salvate come stringhe;
-- persistenza con Spring Data JPA e `ExpenseRepository`;
+- persistenza con Spring Data JPA, `ExpenseRepository` ed `EntityManager`;
 - DTO separati per creazione, PUT, PATCH e risposta;
-- `ExpenseService` con lettura, mapping DTO/entity e primi metodi transazionali;
-- `GET /api/expenses` per recuperare l'elenco delle spese;
+- CRUD REST completo sotto `/api/expenses`;
+- validazione dei payload con Jakarta Validation;
+- metodi transazionali per creazione, modifica ed eliminazione;
+- gestione dell'assenza di una spesa tramite eccezione dedicata;
 - connessione MySQL configurabile tramite variabile d'ambiente;
 - serializzazione delle date ISO con Jackson;
-- strutture iniziali per eccezioni ed error handling;
 - test di avvio del contesto Spring.
 
 ## Modello attuale
@@ -62,11 +63,11 @@ flowchart LR
 | Metodo | Endpoint | Stato |
 | --- | --- | --- |
 | `GET` | `/api/expenses` | Implementato |
-| `GET` | `/api/expenses/{id}` | Da esporre |
-| `POST` | `/api/expenses` | Service/DTO in lavorazione, endpoint non esposto |
-| `PUT` | `/api/expenses/{id}` | Service/DTO in lavorazione, endpoint non esposto |
-| `PATCH` | `/api/expenses/{id}` | Service/DTO in lavorazione, endpoint non esposto |
-| `DELETE` | `/api/expenses/{id}` | Da implementare |
+| `GET` | `/api/expenses/{id}` | Implementato |
+| `POST` | `/api/expenses` | Implementato |
+| `PUT` | `/api/expenses/{id}` | Implementato |
+| `PATCH` | `/api/expenses/{id}` | Implementato |
+| `DELETE` | `/api/expenses/{id}` | Implementato |
 
 ## Configurazione locale
 
@@ -107,15 +108,21 @@ Il servizio userà `http://localhost:8080`.
 
 Al momento è presente principalmente il test di caricamento del contesto; i test comportamentali devono ancora essere aggiunti.
 
+## Limiti attuali
+
+- l'API non è ancora pubblicata;
+- la configurazione CORS è limitata all'ambiente Angular locale;
+- il dominio delle entrate e la gestione utenti non sono completi;
+- autenticazione e autorizzazione non sono ancora implementate;
+- mancano test unitari e di integrazione sul comportamento del CRUD.
+
 ## Prossimi sviluppi
 
-1. rifinire il contratto dei DTO e le regole del dominio `Expense`;
-2. completare mapping, validazione ed error handling;
-3. esporre GET per id, POST, PUT, PATCH e DELETE nel controller;
-4. aggiungere test JUnit/Mockito per service e controller;
-5. configurare CORS e ambienti senza credenziali nel repository;
-6. collegare l'intero verticale al frontend;
-7. introdurre in seguito autenticazione e autorizzazione.
+1. aggiungere test JUnit/Mockito per service e controller;
+2. consolidare validazione ed error handling;
+3. configurare CORS e ambienti per sviluppo e produzione;
+4. collegare l'intero verticale al frontend;
+5. introdurre entrate, utenti, autenticazione e autorizzazione.
 
 ## Autore
 
