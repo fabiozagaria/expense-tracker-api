@@ -1,6 +1,11 @@
 # Gestionale Spese — Backend API
 
-Backend Spring Boot del progetto full stack **Gestionale Spese**. L'obiettivo è fornire una REST API persistente per la gestione di spese, entrate e movimenti personali.
+![Versione](https://img.shields.io/badge/versione-0.3.0--SNAPSHOT-blue)
+![Stato](https://img.shields.io/badge/stato-in%20sviluppo-orange)
+
+**Versione attuale: 0.3.0-SNAPSHOT — API Expense in sviluppo.**
+
+Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione corrente fornisce una REST API persistente dedicata al dominio delle spese personali.
 
 - [Repository frontend](https://github.com/fabiozagaria/expense-tracker-angular)
 - [Demo frontend](https://gestionale-spese.vercel.app/)
@@ -123,6 +128,15 @@ Al momento è presente principalmente il test di caricamento del contesto; i tes
 3. configurare CORS e ambienti per sviluppo e produzione;
 4. collegare l'intero verticale al frontend;
 5. introdurre entrate, utenti, autenticazione e autorizzazione.
+
+## Versioning
+
+Il backend segue la stessa versione funzionale del frontend:
+
+- `0.3.0-SNAPSHOT` identifica lo sviluppo della release Expense Tracker `0.3.0`;
+- `PATCH` per correzioni compatibili;
+- `MINOR` per nuove funzionalità durante la fase `0.x`;
+- rimozione del suffisso `SNAPSHOT` quando viene prodotto un artefatto di release.
 
 ## Autore
 
