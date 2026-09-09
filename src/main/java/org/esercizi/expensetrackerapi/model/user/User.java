@@ -29,7 +29,6 @@ public class User {
     private String username;
 
     @NotNull
-    @Column(nullable = false)
     @OneToMany(mappedBy = "owner")
     private List<Expense> expenseList;
 }
