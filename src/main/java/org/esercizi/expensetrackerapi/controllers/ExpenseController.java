@@ -2,10 +2,10 @@ package org.esercizi.expensetrackerapi.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.esercizi.expensetrackerapi.dto.ExpenseCreateRequest;
-import org.esercizi.expensetrackerapi.dto.ExpensePatchRequest;
-import org.esercizi.expensetrackerapi.dto.ExpenseResponse;
-import org.esercizi.expensetrackerapi.dto.ExpenseUpdateRequest;
+import org.esercizi.expensetrackerapi.dto.expense.ExpenseCreateRequest;
+import org.esercizi.expensetrackerapi.dto.expense.ExpensePatchRequest;
+import org.esercizi.expensetrackerapi.dto.expense.ExpenseResponse;
+import org.esercizi.expensetrackerapi.dto.expense.ExpenseUpdateRequest;
 import org.esercizi.expensetrackerapi.model.expense.Expense;
 import org.esercizi.expensetrackerapi.services.ExpenseService;
 import org.springframework.http.ResponseEntity;

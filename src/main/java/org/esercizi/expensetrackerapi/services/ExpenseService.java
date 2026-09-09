@@ -1,10 +1,10 @@
 package org.esercizi.expensetrackerapi.services;
 
 import jakarta.persistence.EntityManager;
-import org.esercizi.expensetrackerapi.dto.ExpenseCreateRequest;
-import org.esercizi.expensetrackerapi.dto.ExpensePatchRequest;
-import org.esercizi.expensetrackerapi.dto.ExpenseResponse;
-import org.esercizi.expensetrackerapi.dto.ExpenseUpdateRequest;
+import org.esercizi.expensetrackerapi.dto.expense.ExpenseCreateRequest;
+import org.esercizi.expensetrackerapi.dto.expense.ExpensePatchRequest;
+import org.esercizi.expensetrackerapi.dto.expense.ExpenseResponse;
+import org.esercizi.expensetrackerapi.dto.expense.ExpenseUpdateRequest;
 import org.esercizi.expensetrackerapi.exceptions.NotFoundExpenseException;
 import org.esercizi.expensetrackerapi.model.expense.Expense;
 import org.esercizi.expensetrackerapi.repository.ExpenseRepository;
@@ -111,7 +111,8 @@ public class ExpenseService {
                 expense.getAmount(),
                 expense.getDescription(),
                 expense.getCategory(),
-                expense.getDate()
+                expense.getDate(),
+                expense.getOwner()
         );
     }
     public Expense toExpense(ExpenseCreateRequest request) {
@@ -121,7 +122,8 @@ public class ExpenseService {
                 request.amount(),
                 request.description(),
                 request.category(),
-                request.date()
+                request.date(),
+                request.owner()
         );
     }
 

@@ -29,6 +29,15 @@ public class User {
     private String username;
 
     @NotNull
+    @Column(nullable = false)
+    private String password;
+
+    @NotNull
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @NotNull
     @OneToMany(mappedBy = "owner")
     private List<Expense> expenseList;
 }

@@ -1,6 +1,7 @@
-package org.esercizi.expensetrackerapi.dto;
+package org.esercizi.expensetrackerapi.dto.expense;
 
 import org.esercizi.expensetrackerapi.model.expense.ExpenseCategory;
+import org.esercizi.expensetrackerapi.model.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ public record ExpenseResponse(
         BigDecimal amount,
         String description,
         ExpenseCategory category,
-        LocalDate date
+        LocalDate date,
+        User owner
 ) {
 }
