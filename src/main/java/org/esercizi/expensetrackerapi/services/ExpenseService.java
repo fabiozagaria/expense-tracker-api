@@ -56,7 +56,7 @@ public class ExpenseService {
         expenseUpdate.setAmount(request.amount());
         expenseUpdate.setCategory(request.category());
         expenseUpdate.setDate(request.date());
-        expenseUpdate.setDescription(validStringVariableIstance(request.description(), "description"));
+        expenseUpdate.setDescription(validDescription(request.description(), "description"));
         return expenseUpdate;
     }
 
@@ -83,7 +83,7 @@ public class ExpenseService {
         }
 
         if (request.description() != null) {
-            String descriptionValid = validStringVariableIstance(request.description(), "description");
+            String descriptionValid = validDescription(request.description(), "description");
             expenseUpdate.setDescription(descriptionValid);
         }
 
@@ -125,21 +125,15 @@ public class ExpenseService {
         );
     }
 
-    private String validStringVariableIstance(String value, String variableIstanceName) throws IllegalArgumentException {
+    private String validDescription(String value, String description)
+            throws IllegalArgumentException {
             //se null, assente
             if(value == null) {
                 return null;
             }
-            //se vuoto, no
-            if (value.isBlank()) {
-                throw new IllegalArgumentException(String.format("""
-                        %s format not valid
-                        """,
-                        variableIstanceName));
-            } else {
-                //se con valore idoneo, ok
-                return value.trim();
-            }
+
+        return value.trim();
+
 
     }
 }
