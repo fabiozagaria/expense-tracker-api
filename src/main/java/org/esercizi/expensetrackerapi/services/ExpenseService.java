@@ -125,8 +125,7 @@ public class ExpenseService {
         );
     }
 
-    private String validDescription(String value, String description)
-            throws IllegalArgumentException {
+    private String validDescription(String value, String description) {
             //se null, assente
             if(value == null) {
                 return null;

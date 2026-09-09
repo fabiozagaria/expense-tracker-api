@@ -1,15 +1,21 @@
 package org.esercizi.expensetrackerapi.model.expense;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.*;
+import org.esercizi.expensetrackerapi.model.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+
 @Entity
 @Table(name = "expenses")
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Expense {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +26,9 @@ public class Expense {
     @Size(min = 3, max = 15)
     private String title;
 
+    @NotNull
     @Positive
+    @Column(nullable = false)
     private BigDecimal amount;
 
     @Size(max = 30)
@@ -28,70 +36,17 @@ public class Expense {
 
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ExpenseCategory category;
 
     @NotNull
     @PastOrPresent
+    @Column(nullable = false)
     private LocalDate date;
 
-    public Expense() {
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User owner;
 
-    }
-
-    public Expense(Long id, String title, BigDecimal amount, String description, ExpenseCategory category, LocalDate date) {
-        this.id = id;
-        this.title = title;
-        this.amount = amount;
-        this.description = description;
-        this.category = category;
-        this.date = date;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public ExpenseCategory getCategory() {
-        return category;
-    }
-
-    public void setCategory(ExpenseCategory category) {
-        this.category = category;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
 }
