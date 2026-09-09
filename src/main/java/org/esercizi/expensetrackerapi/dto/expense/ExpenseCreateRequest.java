@@ -2,7 +2,6 @@ package org.esercizi.expensetrackerapi.dto.expense;
 
 import jakarta.validation.constraints.*;
 import org.esercizi.expensetrackerapi.model.expense.ExpenseCategory;
-import org.esercizi.expensetrackerapi.model.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,9 +23,8 @@ public record ExpenseCreateRequest(
 
         @NotNull
         @PastOrPresent
-        LocalDate date,
+        LocalDate date
 
-        @NotNull
-        User owner
+
 ) {
 }

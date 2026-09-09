@@ -44,7 +44,7 @@ public class Expense {
     @Column(nullable = false)
     private LocalDate date;
 
-    @NotNull
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;

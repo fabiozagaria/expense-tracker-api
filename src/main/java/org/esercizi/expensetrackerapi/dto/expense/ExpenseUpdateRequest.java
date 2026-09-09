@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 public record ExpenseUpdateRequest(
         @NotBlank
-        @Size(min = 3, max = 15 )
+        @Size(min = 3, max = 15)
         String title,
 
         @NotNull

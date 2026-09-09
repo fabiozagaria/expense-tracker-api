@@ -123,7 +123,8 @@ public class ExpenseService {
                 request.description(),
                 request.category(),
                 request.date(),
-                request.owner()
+                null
+
         );
     }
 
