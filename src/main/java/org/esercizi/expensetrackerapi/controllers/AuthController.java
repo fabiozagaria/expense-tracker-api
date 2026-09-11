@@ -45,7 +45,7 @@ public class AuthController {
     ) {
         Authentication authentication = authService.login(loginRequest);
 
-        log.info("UTENTE {} AUTENTICATO", loginRequest);
+        log.info("UTENTE {} AUTENTICATO", loginRequest.username());
 
         AuthResponse authResponse = authService.getTokens(authentication);
 
