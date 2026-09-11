@@ -12,9 +12,9 @@ Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione co
 
 ## Stato del progetto
 
-**In sviluppo — CRUD delle spese completato.**
+**In sviluppo — CRUD delle spese completato; Security in consolidamento.**
 
-Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione. La pubblicazione dell'API, l'integrazione completa con il frontend, entrate, utenti e autenticazione restano in evoluzione.
+Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione. È presente una prima integrazione di Spring Security con utenti, ownership, BCrypt e login, ma avvio completo, contratto Expense e JWT non sono ancora verificati: non va quindi presentata come autenticazione completata. La pubblicazione dell'API, l'integrazione completa con il frontend e le entrate restano in evoluzione.
 
 ## Implementato
 
@@ -118,16 +118,16 @@ Al momento è presente principalmente il test di caricamento del contesto; i tes
 - l'API non è ancora pubblicata;
 - la configurazione CORS è limitata all'ambiente Angular locale;
 - il dominio delle entrate e la gestione utenti non sono completi;
-- autenticazione e autorizzazione non sono ancora implementate;
+- la base Spring Security è in lavorazione: compilazione, startup, login/JWT e contratto Expense devono essere riallineati e verificati;
 - mancano test unitari e di integrazione sul comportamento del CRUD.
 
 ## Prossimi sviluppi
 
-1. aggiungere test JUnit/Mockito per service e controller;
-2. consolidare validazione ed error handling;
-3. configurare CORS e ambienti per sviluppo e produzione;
-4. collegare l'intero verticale al frontend;
-5. introdurre entrate, utenti, autenticazione e autorizzazione.
+1. ripristinare e verificare compilazione, startup e contratto Expense dopo l'integrazione Security;
+2. aggiungere test JUnit/Mockito per service e controller;
+3. consolidare validazione ed error handling;
+4. configurare CORS e ambienti per sviluppo e produzione;
+5. collegare l'intero verticale al frontend e completare autenticazione/autorizzazione.
 
 ## Versioning
 
