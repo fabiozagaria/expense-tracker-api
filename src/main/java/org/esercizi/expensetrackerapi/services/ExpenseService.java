@@ -24,14 +24,8 @@ public class ExpenseService {
 
 
 
-    public List<Expense> findAll() {
-       return  expenseRepository.findAll();
-
-
-    }
-
     public List<Expense> findAllOwner(String username) {
-        return expenseRepository.findAllByIdAndOwnerUsername(username);
+        return expenseRepository.findAllByOwnerUsername(username);
     }
 
     public Expense findByIdOwner(long id, String username) {

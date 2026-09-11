@@ -12,7 +12,6 @@ import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.services.ExpenseService;
 import org.esercizi.expensetrackerapi.services.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,14 +27,6 @@ public class ExpenseController {
     private final ExpenseService expenseService;
     private final UserService userService;
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    public List<ExpenseResponse> getAllExpenses() {
-        List<Expense> expenseList = expenseService.findAll();
-        return expenseList.stream()
-                .map(expenseService::toExpenseResponse)
-                .toList();
-    }
 
     @GetMapping
     public List<ExpenseResponse> getAllExpensesOwner(

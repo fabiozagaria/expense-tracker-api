@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ExpenseRepository extends JpaRepository<Expense, Long>{
 
-    List<Expense> findAllByIdAndOwnerUsername(String username);
+    List<Expense> findAllByOwnerUsername(String username);
 
     Optional<Expense> findByIdAndOwnerUsername(long id, String username);
 }
