@@ -21,15 +21,14 @@ Integrare gradualmente Spring Security nel Gestionale Spese senza perdere il ver
 
 ## WIP / blocco corrente
 La base Security è ancora incompleta e non è Done:
-- `CustomUserDetailsService` implementa correttamente `UserDetailsService`, ma nello stato verificato non è ancora registrato come bean Spring (`@Service`/`@Component` o `@Bean`);
-- la configurazione Resource Server/JWT è solo scaffold: manca ancora la strategia effettiva di decoding/verifica token;
-- `ExpenseCreateRequest` accetta attualmente un intero `User owner`: con autenticazione reale l'owner non dovrà essere scelto dal client, ma derivato dal principal autenticato;
-- `ExpenseResponse` restituisce attualmente l'entity `User`, scelta da correggere per evitare esposizione di dati sensibili e problemi di serializzazione;
-- il contratto POST Expense non è più allineato all'Angular attuale perché il frontend non invia `owner`;
+- `CustomUserDetailsService` è registrato come bean tramite `@Service` e carica l'utente dal repository;
+- la configurazione Resource Server/JWT è ancora scaffold: manca una strategia effettiva di decoding/verifica token;
+- `ExpenseCreateRequest` e `ExpenseResponse` non espongono l'owner, ma `ExpenseService.toExpenseResponse(...)` passa ancora l'owner al record: il mapper va riallineato prima della compilazione;
+- `Expense.owner` è `nullable = false`, mentre la creazione corrente assegna `null`: la proprietà deve essere derivata dal principal autenticato prima di dichiarare funzionante il verticale protetto;
 - nessun nuovo test comportamentale o avvio completo del backend è stato verificato dopo queste modifiche.
 
 ## Prossima azione
-Registrare `CustomUserDetailsService` come bean Spring e verificare che il backend si avvii con una catena `AuthenticationManager` → `UserDetailsService` realmente collegata al database. Non generare ancora JWT prima di questa verifica.
+Senza modificare ulteriormente lo scope, ripristinare prima la compilazione riallineando mapper/DTO Expense e la creazione dell'owner; poi verificare startup e catena `AuthenticationManager` → `UserDetailsService` collegata al database. Non generare JWT prima di queste verifiche.
 
 ## Priorità tecniche successive
 - spostare l'assegnazione di `Expense.owner` dal payload client al principal autenticato;
