@@ -1,12 +1,14 @@
 package org.esercizi.expensetrackerapi.services;
 
 import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import org.esercizi.expensetrackerapi.dto.expense.ExpenseCreateRequest;
 import org.esercizi.expensetrackerapi.dto.expense.ExpensePatchRequest;
 import org.esercizi.expensetrackerapi.dto.expense.ExpenseResponse;
 import org.esercizi.expensetrackerapi.dto.expense.ExpenseUpdateRequest;
 import org.esercizi.expensetrackerapi.exceptions.NotFoundExpenseException;
 import org.esercizi.expensetrackerapi.model.expense.Expense;
+import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.ExpenseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,16 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final EntityManager entityManager;
 
-    public ExpenseService(ExpenseRepository expenseRepository, EntityManager entityManager) {
 
-        this.expenseRepository = expenseRepository;
-        this.entityManager = entityManager;
-    }
 
     public List<Expense> findAll() {
        return  expenseRepository.findAll();
@@ -31,14 +30,18 @@ public class ExpenseService {
 
     }
 
-    public Expense findById(long id) {
-        return expenseRepository.findById(id)
+    public List<Expense> findAllOwner(String username) {
+        return expenseRepository.findAllByIdAndOwnerUsername(username);
+    }
+
+    public Expense findByIdOwner(long id, String username) {
+        return expenseRepository.findByIdAndOwnerUsername(id, username)
                 .orElseThrow( () -> new NotFoundExpenseException("Expense not found"));
     }
 
     @Transactional
-    public Expense createExpense(ExpenseCreateRequest request) {
-        Expense newExpense = toExpense(request);
+    public Expense createExpense(ExpenseCreateRequest request, User user) {
+        Expense newExpense = toExpense(request, user);
 
         entityManager.persist(newExpense);
 
@@ -48,10 +51,10 @@ public class ExpenseService {
     
 
     @Transactional
-    public Expense putExpense(long id, ExpenseUpdateRequest request) {
-       Expense expenseUpdate = entityManager.find(Expense.class, id);
-       if(expenseUpdate == null)
-           throw new NotFoundExpenseException("Expense not found. Update rollback");
+    public Expense putExpenseById(long id, ExpenseUpdateRequest request, String username) {
+        Expense expenseUpdate = expenseRepository.findByIdAndOwnerUsername(id, username)
+                .orElseThrow(() -> new NotFoundExpenseException("Expense not found"));
+
         expenseUpdate.setTitle(request.title());
         expenseUpdate.setAmount(request.amount());
         expenseUpdate.setCategory(request.category());
@@ -61,10 +64,9 @@ public class ExpenseService {
     }
 
     @Transactional
-    public Expense patchExpenseById(long id, ExpensePatchRequest request) {
-        Expense expenseUpdate = entityManager.find(Expense.class, id);
-        if(expenseUpdate == null)
-            throw new NotFoundExpenseException("Expense not found. Update rollback");
+    public Expense patchExpenseById(long id, ExpensePatchRequest request, String username) {
+        Expense expenseUpdate = expenseRepository.findByIdAndOwnerUsername(id, username)
+                .orElseThrow(() -> new NotFoundExpenseException("Expense not found"));
 
         if(request.title() != null) {
             expenseUpdate.setTitle(request.title().trim());
@@ -91,12 +93,9 @@ public class ExpenseService {
     }
 
     @Transactional
-    public Expense deleteById(long id) {
-        Expense expense = entityManager.find(Expense.class, id);
-
-        if(expense == null) {
-            throw new NotFoundExpenseException("Expense not found. Delete rollback");
-        }
+    public Expense deleteById(long id, String username) {
+        Expense expense = expenseRepository.findByIdAndOwnerUsername(id, username)
+                .orElseThrow(() -> new NotFoundExpenseException("Expense not found"));
 
         entityManager.remove(expense);
         return expense;
@@ -115,7 +114,8 @@ public class ExpenseService {
 
         );
     }
-    public Expense toExpense(ExpenseCreateRequest request) {
+
+    public Expense toExpense(ExpenseCreateRequest request, User user) {
         return new Expense(
                 null,
                 request.title(),
@@ -123,7 +123,7 @@ public class ExpenseService {
                 request.description(),
                 request.category(),
                 request.date(),
-                null
+                user
 
         );
     }
