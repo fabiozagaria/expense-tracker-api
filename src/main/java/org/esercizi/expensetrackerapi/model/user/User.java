@@ -30,7 +30,6 @@ public class User {
 
     @NotNull
     @Column(nullable = false)
-    @Size(min = 6, max = 12)
     private String password;
 
     @NotNull
@@ -38,7 +37,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @NotNull
+
     @OneToMany(mappedBy = "owner")
     private List<Expense> expenseList;
 }
