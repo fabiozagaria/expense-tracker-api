@@ -111,8 +111,8 @@ public class ExpenseService {
                 expense.getAmount(),
                 expense.getDescription(),
                 expense.getCategory(),
-                expense.getDate(),
-                expense.getOwner()
+                expense.getDate()
+
         );
     }
     public Expense toExpense(ExpenseCreateRequest request) {

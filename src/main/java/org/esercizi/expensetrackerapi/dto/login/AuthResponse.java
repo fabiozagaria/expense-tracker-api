@@ -1,6 +1,6 @@
 package org.esercizi.expensetrackerapi.dto.login;
 
-public record LoginResponse(
+public record AuthResponse(
         String accessToken
 ) {
 }

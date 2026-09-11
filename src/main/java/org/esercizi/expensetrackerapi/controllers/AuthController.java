@@ -1,49 +1,60 @@
 package org.esercizi.expensetrackerapi.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.esercizi.expensetrackerapi.dto.login.AuthResponse;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
-import org.esercizi.expensetrackerapi.dto.login.LoginResponse;
-import org.esercizi.expensetrackerapi.security.JwtService;
-import org.esercizi.expensetrackerapi.services.UserService;
+import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
+import org.esercizi.expensetrackerapi.services.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
-    private final UserService userService;
-    private final JwtService jwtService;
+    private final AuthService authService;
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest loginRequest
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(
+            @Valid @RequestBody UserCreateRequest createRequest,
+            HttpServletRequest httpServletRequest
     ) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.username(),
-                        loginRequest.password()
-                )
-
-        );
-
-        String username = authentication.getName();
-        String accessToken = jwtService.getAccessTokenJWT(username);
+        AuthResponse authResponse = authService.register(createRequest);
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new LoginResponse(
-                        accessToken
-                ));
+                .created(URI.create(httpServletRequest.getRequestURI()))
+                .body(authResponse);
 
 
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody LoginRequest loginRequest
+    ) {
+        Authentication authentication = authService.login(loginRequest);
+
+        log.info("UTENTE {} AUTENTICATO", loginRequest);
+
+        AuthResponse authResponse = authService.getTokens(authentication);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(authResponse);
+
+
+    }
+
+
 }

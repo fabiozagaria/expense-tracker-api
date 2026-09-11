@@ -30,6 +30,7 @@ public class User {
 
     @NotNull
     @Column(nullable = false)
+    @Size(min = 6, max = 12)
     private String password;
 
     @NotNull
