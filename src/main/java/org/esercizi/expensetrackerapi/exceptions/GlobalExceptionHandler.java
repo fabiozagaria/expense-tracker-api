@@ -46,4 +46,22 @@ public class GlobalExceptionHandler {
                         status
                 ));
     }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<APIError> handleInvalidRefreshToken(
+            InvalidRefreshTokenException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return ResponseEntity
+                .status(status)
+                .body(new APIError(
+                        "INVALID_REFRESH_TOKEN",
+                        exception.getMessage(),
+                        request.getRequestURI(),
+                        Instant.now(),
+                        status
+                ));
+
+    }
 }

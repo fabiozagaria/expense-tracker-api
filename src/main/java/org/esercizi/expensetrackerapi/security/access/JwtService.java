@@ -1,4 +1,4 @@
-package org.esercizi.expensetrackerapi.security;
+package org.esercizi.expensetrackerapi.security.access;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;

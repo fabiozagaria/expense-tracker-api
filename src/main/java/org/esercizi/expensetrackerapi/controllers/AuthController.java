@@ -7,16 +7,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.esercizi.expensetrackerapi.dto.login.AuthResponse;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
+import org.esercizi.expensetrackerapi.security.access.JwtService;
+import org.esercizi.expensetrackerapi.security.refresh.RefreshTokenService;
 import org.esercizi.expensetrackerapi.services.AuthService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/auth")
@@ -24,6 +28,8 @@ import java.net.URI;
 @Slf4j
 public class AuthController {
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtService jwtService;
 
 
     @PostMapping("/register")
@@ -47,11 +53,31 @@ public class AuthController {
 
         log.info("UTENTE {} AUTENTICATO", loginRequest.username());
 
-        AuthResponse authResponse = authService.getTokens(authentication);
+        AuthResponse authResponse = authService.getToken(authentication);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(authResponse);
+
+
+    }
+
+    @PostMapping("/refresh")
+    public ResponseCookie refresh(
+            @CookieValue(name = "refresh_token", required = false) String refreshToken
+    ) throws NoSuchAlgorithmException {
+
+        Map<String, String> accessAndRefresh = authService.refresh(refreshToken);
+        Set<String> key = accessAndRefresh.keySet();
+        List<String> list = key.stream()
+                .toList();
+        String access = list.getFirst();
+        accessAndRefresh.values().
+
+                ResponseCookie responseCookie = ResponseCookie
+                .from("refresh_token", refresh)
+                .
+        )
 
 
     }
