@@ -2,6 +2,7 @@ package org.esercizi.expensetrackerapi.services;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.esercizi.expensetrackerapi.dto.login.AccessAndRefresh;
 import org.esercizi.expensetrackerapi.dto.login.AuthResponse;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
@@ -19,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +55,7 @@ public class AuthService {
     }
 
     @Transactional
-    public Map<String, String> refresh(String rawToken) throws NoSuchAlgorithmException {
+    public AccessAndRefresh refresh(String rawToken) throws NoSuchAlgorithmException {
         if (rawToken == null)
             throw new InvalidRefreshTokenException("Cookie not exists");
 
@@ -65,15 +64,14 @@ public class AuthService {
         String username = user.getUsername();
 
         validRefreshToken.setRevokeAt(Instant.now());
-        String newRefreshRaw = refreshTokenService.generateRefresh(username);
-        validRefreshToken.setRefreshToken(newRefreshRaw);
+
+        String newRefreshRaw = refreshTokenService.generateRefresh();
+        String hashToken = refreshTokenService.save(newRefreshRaw, username);
+
+        validRefreshToken.setRefreshToken(hashToken);
         String access = jwtService.getAccessTokenJWT(username);
 
-
-        Map<String, String> map = new HashMap<>();
-        map.put(access, newRefreshRaw);
-
-        return map;
+        return new AccessAndRefresh(access, newRefreshRaw);
     }
 
     public AuthResponse getToken(Authentication authentication) {

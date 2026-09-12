@@ -25,7 +25,7 @@ public class RefreshTokenService {
     private final EntityManager entityManager;
 
     @Transactional
-    public String generateRefresh(String username) {
+    public String generateRefresh() {
         byte[] bytes = new byte[32];
         SecureRandom secureRandom = new SecureRandom();
         secureRandom.nextBytes(bytes);
@@ -34,7 +34,14 @@ public class RefreshTokenService {
                 .withoutPadding()
                 .encodeToString(bytes);
 
-        //DB
+
+
+        return rawRefresh;
+
+    }
+
+    public String save(String rawRefresh, String username) throws NoSuchAlgorithmException {
+
         String tokenHash = hashToken(rawRefresh);
 
         User user = userService.findByUsername(username);
@@ -48,9 +55,7 @@ public class RefreshTokenService {
                 .build();
 
         refreshTokenRepository.save(refreshToken);
-
-        return rawRefresh;
-
+        return tokenHash;
     }
 
     public RefreshToken verifyRefresh(String refresh) throws NoSuchAlgorithmException {
