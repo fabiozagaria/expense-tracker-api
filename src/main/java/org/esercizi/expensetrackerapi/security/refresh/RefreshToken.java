@@ -22,7 +22,7 @@ public class RefreshToken {
 
     @NotBlank
     @Column(nullable = false)
-    private String refreshToken;
+    private String tokenHash;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)

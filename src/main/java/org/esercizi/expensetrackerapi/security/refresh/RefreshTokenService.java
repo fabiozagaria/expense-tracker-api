@@ -7,7 +7,6 @@ import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.RefreshTokenRepository;
 import org.esercizi.expensetrackerapi.services.UserService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -24,7 +23,7 @@ public class RefreshTokenService {
     private final UserService userService;
     private final EntityManager entityManager;
 
-    @Transactional
+
     public String generateRefresh() {
         byte[] bytes = new byte[32];
         SecureRandom secureRandom = new SecureRandom();
@@ -34,11 +33,10 @@ public class RefreshTokenService {
                 .withoutPadding()
                 .encodeToString(bytes);
 
-
-
         return rawRefresh;
 
     }
+
 
     public String save(String rawRefresh, String username) throws NoSuchAlgorithmException {
 
@@ -48,7 +46,7 @@ public class RefreshTokenService {
         Instant now = Instant.now();
 
         RefreshToken refreshToken = RefreshToken.builder()
-                .refreshToken(tokenHash)
+                .tokenHash(tokenHash)
                 .user(user)
                 .createAt(now)
                 .expireAt(now.plus(7, ChronoUnit.DAYS))

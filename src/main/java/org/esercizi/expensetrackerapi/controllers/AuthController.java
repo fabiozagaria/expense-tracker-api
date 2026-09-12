@@ -15,7 +15,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -36,11 +35,17 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(
             @Valid @RequestBody UserCreateRequest createRequest,
             HttpServletRequest httpServletRequest
-    ) {
-        AuthResponse authResponse = authService.register(createRequest);
+    ) throws NoSuchAlgorithmException {
+        AccessAndRefresh accessAndRefresh = authService.register(createRequest);
+
+        ResponseCookie responseCookie = setCookie(accessAndRefresh.refresh());
+
         return ResponseEntity
                 .created(URI.create(httpServletRequest.getRequestURI()))
-                .body(authResponse);
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body(new AuthResponse(
+                        accessAndRefresh.access()
+                ));
 
 
     }
@@ -48,16 +53,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest loginRequest
-    ) {
-        Authentication authentication = authService.login(loginRequest);
+    ) throws NoSuchAlgorithmException {
+        AccessAndRefresh accessAndRefresh = authService.login(loginRequest);
 
         log.info("UTENTE {} AUTENTICATO", loginRequest.username());
 
-        AuthResponse authResponse = authService.getToken(authentication);
+        ResponseCookie responseCookie = setCookie(accessAndRefresh.refresh());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(authResponse);
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body(new AuthResponse(
+                        accessAndRefresh.access()
+                ));
 
 
     }
@@ -69,14 +77,8 @@ public class AuthController {
 
         AccessAndRefresh accessAndRefresh = authService.refresh(refreshToken);
 
-        ResponseCookie responseCookie = ResponseCookie
-                .from("refresh_token", accessAndRefresh.refresh())
-                .httpOnly(true)
-                .path("/auth")
-                .secure(false)
-                .sameSite("Strict")
-                .maxAge(Duration.ofDays(7))
-                .build();
+        ResponseCookie responseCookie = setCookie(accessAndRefresh.refresh());
+
         AuthResponse authResponse = new AuthResponse(accessAndRefresh.access());
         return ResponseEntity
                 .ok()
@@ -85,6 +87,17 @@ public class AuthController {
 
 
 
+    }
+
+    public ResponseCookie setCookie(String rawRefresh) {
+        return ResponseCookie
+                .from("refresh_token", rawRefresh)
+                .httpOnly(true)
+                .path("/auth")
+                .secure(false)
+                .sameSite("Strict")
+                .maxAge(Duration.ofDays(7))
+                .build();
     }
 
 

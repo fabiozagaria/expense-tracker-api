@@ -3,7 +3,6 @@ package org.esercizi.expensetrackerapi.services;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.esercizi.expensetrackerapi.dto.login.AccessAndRefresh;
-import org.esercizi.expensetrackerapi.dto.login.AuthResponse;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
 import org.esercizi.expensetrackerapi.exceptions.InvalidRefreshTokenException;
@@ -32,26 +31,37 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
 
     @Transactional
-    public AuthResponse register(UserCreateRequest request) {
+    public AccessAndRefresh register(UserCreateRequest request) throws NoSuchAlgorithmException {
         String username = request.username();
         String pswHashed = passwordEncoder.encode(request.password());
 
         User user = userService.create(username, pswHashed);
         entityManager.persist(user);
 
+        String access = jwtService.getAccessTokenJWT(username);
+        String rawRefresh = refreshTokenService.generateRefresh();
+        refreshTokenService.save(rawRefresh, username);
 
-        return getToken(username);
+
+        return new AccessAndRefresh(access, rawRefresh);
 
 
     }
 
-    public Authentication login(LoginRequest loginRequest) {
-        return authenticationManager.authenticate(
+    public AccessAndRefresh login(LoginRequest loginRequest) throws NoSuchAlgorithmException {
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.username(),
                         loginRequest.password()
                 )
         );
+        String access = jwtService.getAccessTokenJWT(authentication.getName());
+        String rawRefresh = refreshTokenService.generateRefresh();
+        refreshTokenService.save(rawRefresh, authentication.getName());
+
+        return new AccessAndRefresh(access, rawRefresh);
+
+
     }
 
     @Transactional
@@ -68,25 +78,10 @@ public class AuthService {
         String newRefreshRaw = refreshTokenService.generateRefresh();
         String hashToken = refreshTokenService.save(newRefreshRaw, username);
 
-        validRefreshToken.setRefreshToken(hashToken);
         String access = jwtService.getAccessTokenJWT(username);
 
         return new AccessAndRefresh(access, newRefreshRaw);
     }
 
-    public AuthResponse getToken(Authentication authentication) {
-        String username = authentication.getName();
-        String accessToken = jwtService.getAccessTokenJWT(username);
 
-        return new AuthResponse(
-                accessToken
-        );
-    }
-
-    public AuthResponse getToken(String username) {
-        String accessToken = jwtService.getAccessTokenJWT(username);
-        return new AuthResponse(
-                accessToken
-        );
-    }
 }
