@@ -87,9 +87,9 @@ public class GlobalExceptionHandler {
             EmailNotVerifiedException exception,
             HttpServletRequest request
     ) {
-        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        HttpStatus status = HttpStatus.FORBIDDEN;
         return ResponseEntity
-                .badRequest()
+                .status(status)
                 .body(new APIError(
                         "EMAIL_NOT_VERIFIED",
                         exception.getMessage(),

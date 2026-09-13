@@ -8,7 +8,9 @@ import org.esercizi.expensetrackerapi.dto.login.RegistrationResponse;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
 import org.esercizi.expensetrackerapi.exceptions.EmailNotVerifiedException;
 import org.esercizi.expensetrackerapi.exceptions.InvalidRefreshTokenException;
+import org.esercizi.expensetrackerapi.model.EmailVerificationToken;
 import org.esercizi.expensetrackerapi.model.user.User;
+import org.esercizi.expensetrackerapi.repository.EmailVerificationTokenRepository;
 import org.esercizi.expensetrackerapi.security.access.JwtService;
 import org.esercizi.expensetrackerapi.security.refresh.RefreshToken;
 import org.esercizi.expensetrackerapi.security.refresh.RefreshTokenService;
@@ -32,6 +34,7 @@ public class AuthService {
     private final EntityManager entityManager;
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
 
     @Transactional
     public RegistrationResponse register(UserCreateRequest request) throws NoSuchAlgorithmException {
@@ -60,7 +63,8 @@ public class AuthService {
         );
 
         User user = userService.findByUsername(authentication.getName());
-        if (!user.isEmailVerified()) {
+        EmailVerificationToken emailVerificationToken = emailVerificationTokenRepository.findByUserUsername(authentication.getName());
+        if (!user.isEmailVerified() && !emailVerificationToken.getExpireAt().isAfter(Instant.now())) {
             String token = emailService.createVerificationToken(user);
             emailService.sendVerificationEmail(user, token);
             throw new EmailNotVerifiedException("Verifica email di nuovo");
