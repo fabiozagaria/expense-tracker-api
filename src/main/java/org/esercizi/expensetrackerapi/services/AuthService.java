@@ -6,6 +6,7 @@ import org.esercizi.expensetrackerapi.dto.login.AccessAndRefresh;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
 import org.esercizi.expensetrackerapi.dto.login.RegistrationResponse;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
+import org.esercizi.expensetrackerapi.exceptions.EmailNotVerifiedException;
 import org.esercizi.expensetrackerapi.exceptions.InvalidRefreshTokenException;
 import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.security.access.JwtService;
@@ -55,7 +56,14 @@ public class AuthService {
                         loginRequest.username(),
                         loginRequest.password()
                 )
+
         );
+
+        User user = userService.findByUsername(authentication.getName());
+        if (!user.isEmailVerified()) {
+            throw new EmailNotVerifiedException("Verifica email");
+        }
+
         String access = jwtService.getAccessTokenJWT(authentication.getName());
         String rawRefresh = refreshTokenService.generateRefresh();
         refreshTokenService.save(rawRefresh, authentication.getName());

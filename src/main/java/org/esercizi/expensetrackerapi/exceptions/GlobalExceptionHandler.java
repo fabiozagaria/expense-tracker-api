@@ -81,4 +81,21 @@ public class GlobalExceptionHandler {
                         status
                 ));
     }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<APIError> handleEmailNotVerifiedException(
+            EmailNotVerifiedException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return ResponseEntity
+                .badRequest()
+                .body(new APIError(
+                        "EMAIL_NOT_VERIFIED",
+                        exception.getMessage(),
+                        request.getRequestURI(),
+                        Instant.now(),
+                        status
+                ));
+    }
 }
