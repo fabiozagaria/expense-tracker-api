@@ -64,4 +64,21 @@ public class GlobalExceptionHandler {
                 ));
 
     }
+
+    @ExceptionHandler(InvalidVerificationTokenException.class)
+    public ResponseEntity<APIError> handleInvalidVerificationToken(
+            InvalidVerificationTokenException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity
+                .badRequest()
+                .body(new APIError(
+                        "INVALID_VERIFICATION_TOKEN",
+                        exception.getMessage(),
+                        request.getRequestURI(),
+                        Instant.now(),
+                        status
+                ));
+    }
 }

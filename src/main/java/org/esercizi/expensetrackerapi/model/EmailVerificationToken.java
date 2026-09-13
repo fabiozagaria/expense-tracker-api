@@ -38,7 +38,5 @@ public class EmailVerificationToken {
     @Column(nullable = false)
     private Instant expireAt;
 
-    @NotNull
-    @Column(nullable = false)
     private Instant usedAt;
 }

@@ -41,7 +41,9 @@ public class AuthService {
         User user = userService.create(username, pswHashed, email);
         entityManager.persist(user);
 
-        String verificationToken = emailService.generateVerificationToken(user);
+        String verificationToken = emailService.createVerificationToken(user);
+        emailService.sendVerificationEmail(user, verificationToken);
+
 
 
 
