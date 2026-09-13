@@ -70,7 +70,7 @@ public class AuthService {
             throw new InvalidRefreshTokenException("Cookie not found");
         }
         RefreshToken refreshTokenEntity = refreshTokenService.verifyRefresh(rawRefresh);
-        User user = refreshTokenEntity.getUser();
+
         refreshTokenEntity.setRevokeAt(Instant.now());
 
     }
