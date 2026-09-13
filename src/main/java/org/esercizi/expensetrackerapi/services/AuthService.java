@@ -61,7 +61,9 @@ public class AuthService {
 
         User user = userService.findByUsername(authentication.getName());
         if (!user.isEmailVerified()) {
-            throw new EmailNotVerifiedException("Verifica email");
+            String token = emailService.createVerificationToken(user);
+            emailService.sendVerificationEmail(user, token);
+            throw new EmailNotVerifiedException("Verifica email di nuovo");
         }
 
         String access = jwtService.getAccessTokenJWT(authentication.getName());

@@ -33,12 +33,7 @@ public class EmailService {
                 .withoutPadding()
                 .encodeToString(bytes);
 
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        byte[] hashBytes = messageDigest.digest(bytes);
-
-        String hashToken = Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(hashBytes);
+        String hashToken = hashTokenEmail(verificationToken);
 
         Instant now = Instant.now();
 
@@ -63,8 +58,11 @@ public class EmailService {
         EmailVerificationToken emailVerificationToken = emailVerificationTokenRepository.findByTokenHash(hashToken)
                 .orElseThrow(() -> new InvalidVerificationTokenException("Token not found"));
         Instant now = Instant.now();
-        if (emailVerificationToken.getUsedAt().isBefore(now) || emailVerificationToken.getExpireAt().isBefore(now)) {
-            throw new InvalidVerificationTokenException("Token non idoneo");
+        if (emailVerificationToken.getUsedAt() != null
+                || !emailVerificationToken.getExpireAt().isAfter(now)) {
+            throw new InvalidVerificationTokenException(
+                    "Token di verifica non valido o scaduto"
+            );
         }
         User user = emailVerificationToken.getUser();
         user.setEmailVerified(true);
