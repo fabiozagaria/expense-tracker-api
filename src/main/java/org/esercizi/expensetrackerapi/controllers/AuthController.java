@@ -10,6 +10,7 @@ import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
 import org.esercizi.expensetrackerapi.dto.login.RegistrationResponse;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
 import org.esercizi.expensetrackerapi.services.AuthService;
+import org.esercizi.expensetrackerapi.services.EmailService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -26,6 +27,7 @@ import java.time.Duration;
 @Slf4j
 public class AuthController {
     private final AuthService authService;
+    private final EmailService emailService;
 
 
 
@@ -42,6 +44,16 @@ public class AuthController {
                 .body(registrationResponse);
 
 
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(
+            @RequestParam(required = false) String token
+    ) throws NoSuchAlgorithmException {
+        emailService.verifyEmail(token);
+        return ResponseEntity
+                .noContent()
+                .build();
     }
 
     @PostMapping("/login")

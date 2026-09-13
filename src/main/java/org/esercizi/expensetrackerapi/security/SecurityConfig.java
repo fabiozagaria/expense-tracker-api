@@ -60,7 +60,8 @@ public class SecurityConfig {
                                                 "/auth/login",
                                                 "/auth/register",
                                                 "/auth/refresh",
-                                                "/auth/logout"
+                                                "/auth/logout",
+                                                "/auth/verify-email"
                                         ).permitAll()
                                         .anyRequest().authenticated()
                 )

@@ -56,6 +56,9 @@ public class EmailService {
 
     @Transactional
     public void verifyEmail(String rawToken) throws NoSuchAlgorithmException {
+        if (rawToken == null) {
+            throw new InvalidVerificationTokenException("Token not found");
+        }
         String hashToken = hashTokenEmail(rawToken);
         EmailVerificationToken emailVerificationToken = emailVerificationTokenRepository.findByTokenHash(hashToken)
                 .orElseThrow(() -> new InvalidVerificationTokenException("Token not found"));

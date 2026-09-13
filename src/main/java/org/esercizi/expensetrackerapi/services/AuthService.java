@@ -44,10 +44,6 @@ public class AuthService {
         String verificationToken = emailService.createVerificationToken(user);
         emailService.sendVerificationEmail(user, verificationToken);
 
-
-
-
-
         return new RegistrationResponse("Account creato! Verifica Email");
 
 
