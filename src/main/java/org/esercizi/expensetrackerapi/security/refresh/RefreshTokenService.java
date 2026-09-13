@@ -59,7 +59,7 @@ public class RefreshTokenService {
     public RefreshToken verifyRefresh(String refresh) throws NoSuchAlgorithmException {
         String tokenHash = hashToken(refresh);
         RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
-                .orElseThrow();
+                .orElseThrow(() -> new InvalidRefreshTokenException("Token not found"));
         Instant now = Instant.now();
 
         if (refreshToken.getRevokeAt() != null)

@@ -73,7 +73,7 @@ public class AuthController {
         authService.logout(refreshToken);
 
         ResponseCookie deleteCookie = ResponseCookie
-                .from("refresh_token", refreshToken)
+                .from("refresh_token", "")
                 .httpOnly(true)
                 .sameSite("Strict")
                 .secure(false)
