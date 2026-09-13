@@ -9,6 +9,7 @@ import org.esercizi.expensetrackerapi.dto.login.AuthResponse;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
 import org.esercizi.expensetrackerapi.services.AuthService;
+import org.esercizi.expensetrackerapi.services.EmailService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -25,6 +26,7 @@ import java.time.Duration;
 @Slf4j
 public class AuthController {
     private final AuthService authService;
+    private final EmailService emailService;
 
 
     @PostMapping("/register")

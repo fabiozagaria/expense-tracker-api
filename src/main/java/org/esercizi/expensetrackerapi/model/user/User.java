@@ -2,6 +2,7 @@ package org.esercizi.expensetrackerapi.model.user;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -33,11 +34,19 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @NotBlank
+    @Column(nullable = false, unique = true)
+    @Email
+    private String email;
+
     @NotNull
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @NotNull
+    @Column(nullable = false)
+    private boolean emailVerified;
 
     @OneToMany(mappedBy = "owner")
     private List<Expense> expenseList;
