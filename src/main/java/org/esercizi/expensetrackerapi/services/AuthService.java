@@ -19,9 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +40,10 @@ public class AuthService {
 
         User user = userService.create(username, pswHashed, email);
         entityManager.persist(user);
+
+        String verificationToken = emailService.generateVerificationToken(user);
+
+
 
 
         return new RegistrationResponse("Account creato! Verifica Email");
@@ -95,17 +97,7 @@ public class AuthService {
         return new AccessAndRefresh(access, newRefreshRaw);
     }
 
-    public String generateVerificationToken() throws NoSuchAlgorithmException {
-        byte[] bytes = new byte[32];
-        SecureRandom secureRandom = SecureRandom.getInstance("SHA-256");
-        secureRandom.nextBytes(bytes);
 
-        String verificationToken = Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(bytes);
-
-        return verificationToken;
-    }
 
 
 
