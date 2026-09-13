@@ -7,9 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.esercizi.expensetrackerapi.dto.login.AccessAndRefresh;
 import org.esercizi.expensetrackerapi.dto.login.AuthResponse;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
+import org.esercizi.expensetrackerapi.dto.login.RegistrationResponse;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
 import org.esercizi.expensetrackerapi.services.AuthService;
-import org.esercizi.expensetrackerapi.services.EmailService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -26,24 +26,20 @@ import java.time.Duration;
 @Slf4j
 public class AuthController {
     private final AuthService authService;
-    private final EmailService emailService;
+
 
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
+    public ResponseEntity<RegistrationResponse> register(
             @Valid @RequestBody UserCreateRequest createRequest,
             HttpServletRequest httpServletRequest
     ) throws NoSuchAlgorithmException {
-        AccessAndRefresh accessAndRefresh = authService.register(createRequest);
+        RegistrationResponse registrationResponse = authService.register(createRequest);
 
-        ResponseCookie responseCookie = setCookie(accessAndRefresh.refresh());
 
         return ResponseEntity
                 .created(URI.create(httpServletRequest.getRequestURI()))
-                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-                .body(new AuthResponse(
-                        accessAndRefresh.access()
-                ));
+                .body(registrationResponse);
 
 
     }

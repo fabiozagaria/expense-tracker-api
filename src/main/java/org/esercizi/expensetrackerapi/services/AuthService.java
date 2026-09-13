@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.esercizi.expensetrackerapi.dto.login.AccessAndRefresh;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
+import org.esercizi.expensetrackerapi.dto.login.RegistrationResponse;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
 import org.esercizi.expensetrackerapi.exceptions.InvalidRefreshTokenException;
 import org.esercizi.expensetrackerapi.model.user.User;
@@ -18,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
@@ -29,21 +32,19 @@ public class AuthService {
     private final UserService userService;
     private final EntityManager entityManager;
     private final RefreshTokenService refreshTokenService;
+    private final EmailService emailService;
 
     @Transactional
-    public AccessAndRefresh register(UserCreateRequest request) throws NoSuchAlgorithmException {
+    public RegistrationResponse register(UserCreateRequest request) throws NoSuchAlgorithmException {
         String username = request.username();
         String pswHashed = passwordEncoder.encode(request.password());
+        String email = request.email();
 
-        User user = userService.create(username, pswHashed);
+        User user = userService.create(username, pswHashed, email);
         entityManager.persist(user);
 
-        String access = jwtService.getAccessTokenJWT(username);
-        String rawRefresh = refreshTokenService.generateRefresh();
-        refreshTokenService.save(rawRefresh, username);
 
-
-        return new AccessAndRefresh(access, rawRefresh);
+        return new RegistrationResponse("Account creato! Verifica Email");
 
 
     }
@@ -93,6 +94,20 @@ public class AuthService {
 
         return new AccessAndRefresh(access, newRefreshRaw);
     }
+
+    public String generateVerificationToken() throws NoSuchAlgorithmException {
+        byte[] bytes = new byte[32];
+        SecureRandom secureRandom = SecureRandom.getInstance("SHA-256");
+        secureRandom.nextBytes(bytes);
+
+        String verificationToken = Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
+
+        return verificationToken;
+    }
+
+
 
 
 }

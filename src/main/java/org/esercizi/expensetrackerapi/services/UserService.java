@@ -32,10 +32,12 @@ public class UserService {
     }
 
 
-    public User create(@NotNull String username, @NotNull String pswH) {
+    public User create(@NotNull String username, @NotNull String pswH, @NotNull String email) {
         return User.builder()
                 .username(username)
                 .password(pswH)
+                .email(email)
+                .emailVerified(false)
                 .role(Role.USER)
                 .expenseList(List.of())
                 .build();
