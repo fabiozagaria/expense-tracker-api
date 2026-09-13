@@ -65,6 +65,17 @@ public class AuthService {
     }
 
     @Transactional
+    public void logout(String rawRefresh) throws NoSuchAlgorithmException {
+        if (rawRefresh == null) {
+            throw new InvalidRefreshTokenException("Cookie not found");
+        }
+        RefreshToken refreshTokenEntity = refreshTokenService.verifyRefresh(rawRefresh);
+        User user = refreshTokenEntity.getUser();
+        refreshTokenEntity.setRevokeAt(Instant.now());
+
+    }
+
+    @Transactional
     public AccessAndRefresh refresh(String rawToken) throws NoSuchAlgorithmException {
         if (rawToken == null)
             throw new InvalidRefreshTokenException("Cookie not exists");
@@ -76,7 +87,7 @@ public class AuthService {
         validRefreshToken.setRevokeAt(Instant.now());
 
         String newRefreshRaw = refreshTokenService.generateRefresh();
-        String hashToken = refreshTokenService.save(newRefreshRaw, username);
+        refreshTokenService.save(newRefreshRaw, username);
 
         String access = jwtService.getAccessTokenJWT(username);
 

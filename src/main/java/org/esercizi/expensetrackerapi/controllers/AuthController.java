@@ -8,8 +8,6 @@ import org.esercizi.expensetrackerapi.dto.login.AccessAndRefresh;
 import org.esercizi.expensetrackerapi.dto.login.AuthResponse;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
-import org.esercizi.expensetrackerapi.security.access.JwtService;
-import org.esercizi.expensetrackerapi.security.refresh.RefreshTokenService;
 import org.esercizi.expensetrackerapi.services.AuthService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,8 +25,6 @@ import java.time.Duration;
 @Slf4j
 public class AuthController {
     private final AuthService authService;
-    private final RefreshTokenService refreshTokenService;
-    private final JwtService jwtService;
 
 
     @PostMapping("/register")
@@ -67,6 +63,27 @@ public class AuthController {
                         accessAndRefresh.access()
                 ));
 
+
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @CookieValue(name = "refresh_token", required = false) String refreshToken
+    ) throws NoSuchAlgorithmException {
+        authService.logout(refreshToken);
+
+        ResponseCookie deleteCookie = ResponseCookie
+                .from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .sameSite("Strict")
+                .secure(false)
+                .path("/auth")
+                .maxAge(Duration.ZERO)
+                .build();
+        return ResponseEntity
+                .noContent()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .build();
 
     }
 
