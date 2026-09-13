@@ -12,7 +12,7 @@ public record UserCreateRequest(
 
         @NotNull
         @Email
-        @Size(max = 20)
+        @Size(max = 50)
         String email,
 
         @NotBlank
