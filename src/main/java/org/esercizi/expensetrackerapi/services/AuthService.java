@@ -8,7 +8,6 @@ import org.esercizi.expensetrackerapi.dto.login.RegistrationResponse;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
 import org.esercizi.expensetrackerapi.exceptions.EmailNotVerifiedException;
 import org.esercizi.expensetrackerapi.exceptions.InvalidRefreshTokenException;
-import org.esercizi.expensetrackerapi.model.EmailVerificationToken;
 import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.EmailVerificationTokenRepository;
 import org.esercizi.expensetrackerapi.security.access.JwtService;
@@ -63,10 +62,9 @@ public class AuthService {
         );
 
         User user = userService.findByUsername(authentication.getName());
-        EmailVerificationToken emailVerificationToken = emailVerificationTokenRepository.findByUserUsername(authentication.getName());
-        if (!user.isEmailVerified() && !emailVerificationToken.getExpireAt().isAfter(Instant.now())) {
-            String token = emailService.createVerificationToken(user);
-            emailService.sendVerificationEmail(user, token);
+
+        if (!user.isEmailVerified()) {
+
             throw new EmailNotVerifiedException("Verifica email di nuovo");
         }
 
