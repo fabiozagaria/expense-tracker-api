@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.esercizi.expensetrackerapi.model.EmailVerificationToken;
 import org.esercizi.expensetrackerapi.model.expense.Expense;
+import org.esercizi.expensetrackerapi.model.income.Income;
 import org.esercizi.expensetrackerapi.security.refresh.RefreshToken;
 
 import java.util.List;
@@ -51,6 +52,9 @@ public class User {
 
     @OneToMany(mappedBy = "owner")
     private List<Expense> expenseList;
+
+    @OneToMany(mappedBy = "owner")
+    private List<Income> incomeList;
 
     @OneToMany(mappedBy = "user")
     private List<RefreshToken> refreshTokenList;
