@@ -2,9 +2,11 @@ package org.esercizi.expensetrackerapi.model.income;
 
 public enum IncomeCategory {
     salary,
-    refund,
-    gift,
+    freelance,
     bonus,
-    sale,
+    refund,
+    investment,
+    gift,
+    rental,
     other
 }
