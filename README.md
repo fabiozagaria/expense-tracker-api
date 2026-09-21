@@ -83,8 +83,8 @@ Gli endpoint `/api/expenses` richiedono `Authorization: Bearer <access token>` e
 
 ### Requisiti
 
-- JDK 21
-- MySQL
+- JDK 21 per l'avvio senza Docker
+- MySQL per l'avvio senza Docker
 
 Il progetto usa il database `expense-tracker`. La password viene letta dalla variabile d'ambiente `DB_PASSWORD`.
 
@@ -108,7 +108,15 @@ $env:DB_PASSWORD="la-tua-password"
 ./mvnw.cmd spring-boot:run
 ```
 
-Per l'autenticazione serve anche `SECRET_KEY` (chiave casuale di almeno 32 byte, da impostare nell'ambiente e mai versionare). Avviare Mailpit con `docker compose up -d` per ricevere i link di verifica su `http://localhost:8025`. Il servizio userà `http://localhost:8080` e accetta il frontend locale su `http://localhost:4200`.
+Per l'autenticazione serve anche `SECRET_KEY` (chiave casuale di almeno 32 byte, da impostare nell'ambiente e mai versionare). Il servizio userà `http://localhost:8080` e accetta il frontend locale su `http://localhost:4200`.
+
+### Avvio con Docker Compose
+
+1. Copiare `.env.example` in `.env` e compilare `DB_PASSWORD`, `MYSQL_ROOT_PASSWORD` e `SECRET_KEY` con valori propri. `.env` è ignorato da Git e dal contesto Docker.
+2. Avviare lo stack con `docker compose up --build -d`.
+3. Aprire Mailpit su `http://localhost:8025` per leggere il link di verifica email; avviare Angular su `http://localhost:4200`.
+
+Compose avvia backend, MySQL 8 e Mailpit. Il database usa un volume persistente e non espone la porta 3306 sull'host. Backend e Mailpit sono accessibili solo da `localhost`. Per fermare i container: `docker compose down` (il volume MySQL resta disponibile).
 
 ## Verifiche
 
