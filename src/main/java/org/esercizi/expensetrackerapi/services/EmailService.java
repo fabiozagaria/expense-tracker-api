@@ -1,6 +1,7 @@
 package org.esercizi.expensetrackerapi.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.esercizi.expensetrackerapi.exceptions.InvalidVerificationTokenException;
 import org.esercizi.expensetrackerapi.model.EmailVerificationToken;
 import org.esercizi.expensetrackerapi.model.user.User;
@@ -23,6 +24,8 @@ import java.util.Base64;
 public class EmailService {
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final JavaMailSender javaMailSender;
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     public String createVerificationToken(User user) throws NoSuchAlgorithmException {
         byte[] bytes = new byte[32];
@@ -57,6 +60,10 @@ public class EmailService {
         String hashToken = hashTokenEmail(rawToken);
         EmailVerificationToken emailVerificationToken = emailVerificationTokenRepository.findByTokenHash(hashToken)
                 .orElseThrow(() -> new InvalidVerificationTokenException("Token not found"));
+        User user = emailVerificationToken.getUser();
+        if (user.isEmailVerified()) {
+            return;
+        }
         Instant now = Instant.now();
         if (emailVerificationToken.getUsedAt() != null
                 || !emailVerificationToken.getExpireAt().isAfter(now)) {
@@ -64,7 +71,6 @@ public class EmailService {
                     "Token di verifica non valido o scaduto"
             );
         }
-        User user = emailVerificationToken.getUser();
         user.setEmailVerified(true);
         emailVerificationToken.setUsedAt(now);
 
@@ -72,8 +78,7 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(User user, String rawToken) {
-        String verificationUrl =
-                "http://localhost:4200/verify-email?token=" + rawToken;
+        String verificationUrl = frontendUrl + "/verify-email?token=" + rawToken;
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(user.getEmail());
         mailMessage.setFrom("noreply@expense-tracker.local");

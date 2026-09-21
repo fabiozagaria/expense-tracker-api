@@ -105,5 +105,7 @@ class AuthExpenseFlowTests {
         String token = body.substring(body.indexOf("?token=") + 7).trim();
         mvc.perform(post("/auth/verify-email").param("token", token))
                 .andExpect(status().isNoContent());
+        mvc.perform(post("/auth/verify-email").param("token", token))
+                .andExpect(status().isNoContent());
     }
 }
