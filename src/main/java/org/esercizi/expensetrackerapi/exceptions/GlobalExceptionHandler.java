@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.esercizi.expensetrackerapi.exceptions.errors.APIError;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -11,6 +13,20 @@ import java.time.Instant;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<APIError> handleBadCredentials(BadCredentialsException exception, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return ResponseEntity.status(status).body(new APIError(
+                "INVALID_CREDENTIALS", "Credenziali non valide", request.getRequestURI(), Instant.now(), status));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<APIError> handleDataConflict(DataIntegrityViolationException exception, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        return ResponseEntity.status(status).body(new APIError(
+                "DATA_CONFLICT", "Dati in conflitto con una risorsa esistente", request.getRequestURI(), Instant.now(), status));
+    }
 
     @ExceptionHandler(NotFoundExpenseException.class)
     public ResponseEntity<APIError> handleNotFoundExpense(

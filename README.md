@@ -12,9 +12,9 @@ Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione co
 
 ## Stato del progetto
 
-**In sviluppo — CRUD delle spese completato; Security in consolidamento.**
+**In sviluppo — CRUD delle spese e flusso di autenticazione locale verificati con test di integrazione.**
 
-Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione. È presente una prima integrazione di Spring Security con utenti, ownership, BCrypt e login, ma avvio completo, contratto Expense e JWT non sono ancora verificati: non va quindi presentata come autenticazione completata. La pubblicazione dell'API, l'integrazione completa con il frontend e le entrate restano in evoluzione.
+Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione per l'utente autenticato. Registrazione con verifica email, BCrypt, login JWT, refresh token ruotato in cookie HttpOnly e logout sono coperti da un test di integrazione con MySQL e invio email simulato. La prova manuale nel browser e la pubblicazione dell'API restano aperte.
 
 ## Implementato
 
@@ -30,6 +30,9 @@ Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, a
 - connessione MySQL configurabile tramite variabile d'ambiente;
 - serializzazione delle date ISO con Jackson;
 - test di avvio del contesto Spring.
+- registrazione, verifica email, login, refresh e logout sotto `/auth`;
+- JWT Bearer per `/api/expenses`, isolamento delle spese per proprietario e CORS per il frontend locale;
+- test di integrazione del flusso autenticazione e spese personali.
 
 ## Modello attuale
 
@@ -74,6 +77,8 @@ flowchart LR
 | `PATCH` | `/api/expenses/{id}` | Implementato |
 | `DELETE` | `/api/expenses/{id}` | Implementato |
 
+Gli endpoint `/api/expenses` richiedono `Authorization: Bearer <access token>` e restituiscono solo le spese dell'utente autenticato. Gli endpoint pubblici `POST /auth/register`, `/auth/verify-email`, `/auth/login`, `/auth/refresh` e `/auth/logout` gestiscono la sessione; il refresh token viaggia solo nel cookie HttpOnly.
+
 ## Configurazione locale
 
 ### Requisiti
@@ -103,7 +108,7 @@ $env:DB_PASSWORD="la-tua-password"
 ./mvnw.cmd spring-boot:run
 ```
 
-Il servizio userà `http://localhost:8080`.
+Per l'autenticazione serve anche `SECRET_KEY` (chiave casuale di almeno 32 byte, da impostare nell'ambiente e mai versionare). Avviare Mailpit con `docker compose up -d` per ricevere i link di verifica su `http://localhost:8025`. Il servizio userà `http://localhost:8080` e accetta il frontend locale su `http://localhost:4200`.
 
 ## Verifiche
 
@@ -111,23 +116,22 @@ Il servizio userà `http://localhost:8080`.
 ./mvnw test
 ```
 
-Al momento è presente principalmente il test di caricamento del contesto; i test comportamentali devono ancora essere aggiunti.
+Sono presenti il test di avvio del contesto e un test di integrazione con MySQL per registrazione, verifica email, login, refresh, Bearer e isolamento delle spese. L'invio email è simulato nel test.
 
 ## Limiti attuali
 
 - l'API non è ancora pubblicata;
 - la configurazione CORS è limitata all'ambiente Angular locale;
-- il dominio delle entrate e la gestione utenti non sono completi;
-- la base Spring Security è in lavorazione: compilazione, startup, login/JWT e contratto Expense devono essere riallineati e verificati;
-- mancano test unitari e di integrazione sul comportamento del CRUD.
+- il dominio delle entrate non è implementato;
+- il percorso nel browser con Mailpit non è ancora stato verificato in questa sessione;
+- restano da ampliare i test dei casi limite del CRUD e configurare cookie/CORS/URL per la produzione.
 
 ## Prossimi sviluppi
 
-1. ripristinare e verificare compilazione, startup e contratto Expense dopo l'integrazione Security;
-2. aggiungere test JUnit/Mockito per service e controller;
+1. verificare manualmente il percorso browser con Mailpit e frontend Angular;
+2. aggiungere test sui casi limite del CRUD e della sessione;
 3. consolidare validazione ed error handling;
-4. configurare CORS e ambienti per sviluppo e produzione;
-5. collegare l'intero verticale al frontend e completare autenticazione/autorizzazione.
+4. configurare CORS, cookie e URL per sviluppo e produzione.
 
 ## Versioning
 
