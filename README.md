@@ -3,18 +3,24 @@
 ![Versione](https://img.shields.io/badge/versione-0.3.0--SNAPSHOT-blue)
 ![Stato](https://img.shields.io/badge/stato-in%20sviluppo-orange)
 
-**Versione attuale: 0.3.0-SNAPSHOT — API Expense in sviluppo.**
+**Versione attuale: 0.3.0-SNAPSHOT — API spese, entrate e riepilogo in consolidamento.**
 
-Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione corrente fornisce una REST API persistente dedicata al dominio delle spese personali.
+Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione corrente fornisce API persistenti per le spese personali, la creazione e lettura delle entrate e un riepilogo dei totali per utente.
 
 - [Repository frontend](https://github.com/fabiozagaria/expense-tracker-angular)
 - [Demo frontend](https://gestionale-spese.vercel.app/)
 
 ## Stato del progetto
 
-**In sviluppo — CRUD delle spese e flusso di autenticazione locale verificati con test di integrazione.**
+**In consolidamento — CRUD spese e autenticazione coperti da test di integrazione; entrate e dashboard presenti nel codice, da verificare nel percorso completo.**
 
 Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione per l'utente autenticato. Registrazione con verifica email, BCrypt, login JWT, refresh token ruotato in cookie HttpOnly e logout sono coperti da un test di integrazione con MySQL e invio email simulato. La prova manuale nel browser e la pubblicazione dell'API restano aperte.
+
+## Scopo e confine della versione
+
+Expense Tracker è il prodotto full stack di riferimento per API MVC, DTO, validazione, transazioni, autenticazione e isolamento dei dati. Il prossimo traguardo è verificare insieme backend e frontend nel browser, includendo spese, entrate e riepilogo, prima di ampliare le funzionalità.
+
+La presenza di endpoint e test nel repository è distinta dalla verifica dell'intero flusso distribuito.
 
 ## Implementato
 
@@ -32,7 +38,9 @@ Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, a
 - test di avvio del contesto Spring.
 - registrazione, verifica email, login, refresh e logout sotto `/auth`;
 - JWT Bearer per `/api/expenses`, isolamento delle spese per proprietario e CORS per il frontend locale;
-- test di integrazione del flusso autenticazione e spese personali.
+- test di integrazione del flusso autenticazione e spese personali;
+- `GET` e `POST /api/incomes` per entrate associate all'utente autenticato;
+- `GET /api/dashboard/summary` per totale entrate, totale spese e saldo.
 
 ## Modello attuale
 
@@ -76,6 +84,16 @@ flowchart LR
 | `PUT` | `/api/expenses/{id}` | Implementato |
 | `PATCH` | `/api/expenses/{id}` | Implementato |
 | `DELETE` | `/api/expenses/{id}` | Implementato |
+
+### Entrate e riepilogo
+
+| Metodo | Endpoint | Comportamento presente |
+| --- | --- | --- |
+| `GET` | `/api/incomes` | Elenco entrate del proprietario |
+| `POST` | `/api/incomes` | Creazione entrata |
+| `GET` | `/api/dashboard/summary` | Totali e saldo del proprietario |
+
+Il dominio entrate non espone ancora un CRUD completo. Questi endpoint richiedono autenticazione Bearer e non sono coperti dal test `AuthExpenseFlowTests` dedicato alle spese.
 
 Gli endpoint `/api/expenses` richiedono `Authorization: Bearer <access token>` e restituiscono solo le spese dell'utente autenticato. Gli endpoint pubblici `POST /auth/register`, `/auth/verify-email`, `/auth/login`, `/auth/refresh` e `/auth/logout` gestiscono la sessione; il refresh token viaggia solo nel cookie HttpOnly.
 
@@ -130,16 +148,19 @@ Sono presenti il test di avvio del contesto e un test di integrazione con MySQL 
 
 - l'API non è ancora pubblicata;
 - la configurazione CORS è limitata all'ambiente Angular locale;
-- il dominio delle entrate non è implementato;
-- il percorso nel browser con Mailpit non è ancora stato verificato in questa sessione;
+- entrate e dashboard sono implementate in parte, ma richiedono test dedicati e verifica con il frontend;
+- il percorso completo nel browser con Mailpit resta da verificare;
 - restano da ampliare i test dei casi limite del CRUD e configurare cookie/CORS/URL per la produzione.
 
 ## Prossimi sviluppi
 
-1. verificare manualmente il percorso browser con Mailpit e frontend Angular;
-2. aggiungere test sui casi limite del CRUD e della sessione;
-3. consolidare validazione ed error handling;
-4. configurare CORS, cookie e URL per sviluppo e produzione.
+1. verificare registrazione, verifica email, login, refresh e logout nel browser con Angular e Mailpit;
+2. verificare spese, entrate, riepilogo e isolamento fra utenti, includendo modifiche ed eliminazioni;
+3. aggiungere test mirati sui casi limite e sui nuovi endpoint;
+4. configurare CORS, cookie e URL per gli ambienti e aggiornare la documentazione;
+5. dopo questo traguardo, scegliere un solo incremento: per esempio filtri/paginazione oppure report mensile.
+
+La configurazione attuale disabilita CSRF e usa il refresh cookie con `SameSite=Strict`: prima della pubblicazione va rivalutata rispetto alle origini e al flusso effettivi. Il logout revoca il refresh; un access token già emesso resta valido fino alla scadenza.
 
 ## Versioning
 
