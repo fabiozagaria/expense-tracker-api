@@ -39,3 +39,7 @@ Profilo backend demo, login condiviso e proxy Vercel preparati. SMTP resta local
 ## Registrazione — 2026-10-12
 
 Controllo server di username/email duplicati prima di salvare User e inviare email: HTTP 409 con errorName USERNAME_ALREADY_EXISTS o EMAIL_ALREADY_EXISTS. I vincoli UNIQUE MySQL restano attivi per richieste concorrenti. Email vuota respinta. La password resta BCrypt e il ruolo viene assegnato come USER dal server. Nuovi utenti non verificati non possono fare login. Il profilo demo conserva la registrazione pubblica disabilitata: il provider email HTTPS sarà configurato successivamente.
+
+## Provider email HTTPS — 2026-10-12
+
+Brevo è integrato tramite RestClient (porta 443), con mittente verificato configurabile, testo/HTML, timeout e nessun retry automatico. SMTP/Mailpit resta locale. Il profilo demo disabilita il trasporto e la registrazione per default; l’attivazione richiede variabili esplicite e verifica della consegna reale. Su errore provider: HTTP 503 EMAIL_DELIVERY_UNAVAILABLE e rollback di User/token. Configurazione e limiti documentati in EMAIL.md. Non ancora verificata la consegna reale: mancano account/mittente/API key del proprietario.

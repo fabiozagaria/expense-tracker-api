@@ -182,4 +182,4 @@ Configurazione demo in preparazione: vedere [deploy e verifiche](docs/DEPLOYMENT
 
 ## Controllo registrazione
 
-POST /auth/register salva User con password BCrypt, ruolo USER ed email non verificata. Prima del salvataggio controlla username/email già presenti e restituisce 409 con errorName specifico. In locale invia il link tramite SMTP/Mailpit; nella demo pubblica la registrazione resta disabilitata fino alla configurazione di un provider HTTPS.
+POST /auth/register salva User con password BCrypt, ruolo USER ed email non verificata. Prima del salvataggio controlla username/email già presenti e restituisce 409 con errorName specifico. Il trasporto è configurabile: SMTP/Mailpit in locale oppure Brevo via HTTPS su Render. Il profilo demo conserva email e registrazione disabilitate per default. Se il provider rifiuta l’invio, HTTP 503 e rollback di User/token. Vedere [configurazione email](docs/EMAIL.md) per attivazione e limiti del piano Free.

@@ -22,7 +22,7 @@ La demo usa un account condiviso: visitatori diversi possono cambiare gli stessi
 
 ## Email
 
-In locale resta SMTP/Mailpit. La demo non invia email e blocca la registrazione. La futura integrazione HTTPS richiede un provider e un mittente verificato; non basta cambiare host o porta SMTP.
+Il backend supporta Brevo tramite API HTTPS e SMTP/Mailpit in locale. Il profilo demo usa per default `MAIL_PROVIDER=disabled` e `REGISTRATION_ENABLED=false`. Configurazione, limiti Free, mittente senza dominio e prova reale sono descritti in [EMAIL.md](EMAIL.md). Nessuna email viene abilitata dal solo deploy.
 
 ## Verifica prima della pubblicazione
 
