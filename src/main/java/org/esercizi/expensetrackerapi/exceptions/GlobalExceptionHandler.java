@@ -14,6 +14,13 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(EmailDeliveryException.class)
+    public ResponseEntity<APIError> handleEmailDelivery(EmailDeliveryException exception, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
+        return ResponseEntity.status(status).body(new APIError(
+                "EMAIL_DELIVERY_UNAVAILABLE", exception.getMessage(), request.getRequestURI(), Instant.now(), status));
+    }
+
     @ExceptionHandler(RegistrationConflictException.class)
     public ResponseEntity<APIError> handleRegistrationConflict(
             RegistrationConflictException exception, HttpServletRequest request) {
