@@ -1,6 +1,8 @@
 package org.esercizi.expensetrackerapi.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.server.ResponseStatusException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,12 @@ import java.time.Duration;
 public class AuthController {
     private final AuthService authService;
     private final EmailService emailService;
+    @Value("${app.cookie-secure:false}")
+    private boolean cookieSecure;
+    @Value("${app.cookie-same-site:Strict}")
+    private String cookieSameSite;
+    @Value("${app.registration-enabled:true}")
+    private boolean registrationEnabled;
 
 
 
@@ -36,6 +44,10 @@ public class AuthController {
             @Valid @RequestBody UserCreateRequest createRequest,
             HttpServletRequest httpServletRequest
     ) throws NoSuchAlgorithmException {
+        if (!registrationEnabled) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Registrazione non disponibile nella demo");
+        }
         RegistrationResponse registrationResponse = authService.register(createRequest);
 
 
@@ -85,8 +97,8 @@ public class AuthController {
         ResponseCookie deleteCookie = ResponseCookie
                 .from("refresh_token", "")
                 .httpOnly(true)
-                .sameSite("Strict")
-                .secure(false)
+                .sameSite(cookieSameSite)
+                .secure(cookieSecure)
                 .path("/auth")
                 .maxAge(Duration.ZERO)
                 .build();
@@ -121,11 +133,12 @@ public class AuthController {
                 .from("refresh_token", rawRefresh)
                 .httpOnly(true)
                 .path("/auth")
-                .secure(false)
-                .sameSite("Strict")
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
                 .maxAge(Duration.ofDays(7))
                 .build();
     }
 
 
 }
+

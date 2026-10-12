@@ -30,3 +30,8 @@ Verificare il verticale registrazione → verifica email → login → spese per
 ## Regola di sincronizzazione
 
 Il contratto REST qui implementato è la fonte di verità per `expense-tracker-angular`. Aggiornare questo file e la documentazione pubblica quando cambia il contratto.
+
+
+## Preparazione demo — 2026-10-12
+
+Profilo backend demo, login condiviso e proxy Vercel preparati. SMTP resta locale; registrazione disabilitata nella demo. Pubblicazione e verifica browser ancora aperte. Vedere DEPLOYMENT.md.

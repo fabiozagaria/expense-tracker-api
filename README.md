@@ -174,3 +174,8 @@ Il backend segue la stessa versione funzionale del frontend:
 ## Autore
 
 Fabio Zagaria — Junior Backend Developer con competenze full stack.
+
+
+## Preparazione demo pubblica
+
+Configurazione demo in preparazione: vedere [deploy e verifiche](docs/DEPLOYMENT.md). La disponibilità del backend pubblico resta da verificare.
