@@ -10,6 +10,8 @@ import org.esercizi.expensetrackerapi.exceptions.EmailNotVerifiedException;
 import org.esercizi.expensetrackerapi.exceptions.InvalidRefreshTokenException;
 import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.EmailVerificationTokenRepository;
+import org.esercizi.expensetrackerapi.repository.UserRepository;
+import org.esercizi.expensetrackerapi.exceptions.RegistrationConflictException;
 import org.esercizi.expensetrackerapi.security.access.JwtService;
 import org.esercizi.expensetrackerapi.security.refresh.RefreshToken;
 import org.esercizi.expensetrackerapi.security.refresh.RefreshTokenService;
@@ -34,9 +36,16 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public RegistrationResponse register(UserCreateRequest request) throws NoSuchAlgorithmException {
+        if (userRepository.existsByUsername(request.username())) {
+            throw new RegistrationConflictException(RegistrationConflictException.Field.USERNAME);
+        }
+        if (userRepository.existsByEmail(request.email())) {
+            throw new RegistrationConflictException(RegistrationConflictException.Field.EMAIL);
+        }
         String username = request.username();
         String pswHashed = passwordEncoder.encode(request.password());
         String email = request.email();
@@ -113,3 +122,4 @@ public class AuthService {
 
 
 }
+

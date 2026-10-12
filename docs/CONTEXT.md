@@ -35,3 +35,7 @@ Il contratto REST qui implementato è la fonte di verità per `expense-tracker-a
 ## Preparazione demo — 2026-10-12
 
 Profilo backend demo, login condiviso e proxy Vercel preparati. SMTP resta locale; registrazione disabilitata nella demo. Pubblicazione e verifica browser ancora aperte. Vedere DEPLOYMENT.md.
+
+## Registrazione — 2026-10-12
+
+Controllo server di username/email duplicati prima di salvare User e inviare email: HTTP 409 con errorName USERNAME_ALREADY_EXISTS o EMAIL_ALREADY_EXISTS. I vincoli UNIQUE MySQL restano attivi per richieste concorrenti. Email vuota respinta. La password resta BCrypt e il ruolo viene assegnato come USER dal server. Nuovi utenti non verificati non possono fare login. Il profilo demo conserva la registrazione pubblica disabilitata: il provider email HTTPS sarà configurato successivamente.

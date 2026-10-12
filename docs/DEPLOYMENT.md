@@ -40,4 +40,8 @@ In locale resta SMTP/Mailpit. La demo non invia email e blocca la registrazione.
 
 ## Servizio Render creato
 
-Servizio `expense-tracker-api-demo`, piano Free, regione Frankfurt, branch `demo/render-aiven-setup`. Certificato e variabili preparati; manca l'inserimento di `DB_PASSWORD` da parte del proprietario e la verifica del deploy. Il frontend di produzione non è ancora aggiornato.
+Servizio `expense-tracker-api-demo`, piano Free, regione Frankfurt, branch `demo/render-aiven-setup`. Certificato e variabili configurati; `DB_PASSWORD` inserita dal proprietario. Deploy Render live e API verificate. Pubblicazione del frontend in corso.
+
+## Verifica backend pubblico — 2026-10-12
+
+Deploy Render `dep-db6g54ad0e5s73akjl20` live. `/health`, login demo, lettura spese/entrate/dashboard e refresh restituiscono 200; logout restituisce 204 e il refresh dopo logout 401. Cookie HttpOnly, Secure, SameSite=Strict e Path=/auth verificati. Connessione MySQL riuscita con la configurazione VERIFY_IDENTITY e il certificato Aiven. Avvio dell'app circa 143 secondi su Render Free; la UI deve considerare 2–3 minuti.

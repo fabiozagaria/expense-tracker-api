@@ -13,6 +13,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.esercizi.expensetrackerapi.repository.UserRepository;
+import org.esercizi.expensetrackerapi.model.user.Role;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthExpenseFlowTests {
     @Autowired MockMvc mvc;
     @MockitoBean JavaMailSender mailSender;
+    @Autowired UserRepository users;
+    @Autowired PasswordEncoder passwordEncoder;
 
     @Test
     void corsAllowsCredentialedFrontendAndExpensesRequireBearer() throws Exception {
@@ -91,6 +96,46 @@ class AuthExpenseFlowTests {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void registrationPersistsHashedPasswordAndRejectsDuplicateIdentityBeforeSendingMail() throws Exception {
+        mvc.perform(post("/auth/register").contentType("application/json").content("""
+                {"username":"registration1","email":"registration1@example.test","password":"secret123"}
+                """))
+                .andExpect(status().isCreated());
+        var user = users.findByUsername("registration1").orElseThrow();
+        assertThat(user.getPassword()).isNotEqualTo("secret123");
+        assertThat(passwordEncoder.matches("secret123", user.getPassword())).isTrue();
+        assertThat(user.getRole()).isEqualTo(Role.USER);
+        assertThat(user.isEmailVerified()).isFalse();
+
+        mvc.perform(post("/auth/register").contentType("application/json").content("""
+                {"username":"registration1","email":"different@example.test","password":"secret123"}
+                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorName").value("USERNAME_ALREADY_EXISTS"));
+        mvc.perform(post("/auth/register").contentType("application/json").content("""
+                {"username":"registration2","email":"registration1@example.test","password":"secret123"}
+                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorName").value("EMAIL_ALREADY_EXISTS"));
+        assertThat(users.findByUsername("registration2")).isEmpty();
+        verify(mailSender, times(1)).send(org.mockito.ArgumentMatchers.any(SimpleMailMessage.class));
+        mvc.perform(post("/auth/login").contentType("application/json").content("""
+                {"username":"registration1","password":"secret123"}
+                """))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void registrationRejectsBlankEmailWithoutSavingUserOrSendingMail() throws Exception {
+        mvc.perform(post("/auth/register").contentType("application/json").content("""
+                {"username":"blankemail1","email":"","password":"secret123"}
+                """))
+                .andExpect(status().isBadRequest());
+        assertThat(users.findByUsername("blankemail1")).isEmpty();
+        org.mockito.Mockito.verifyNoInteractions(mailSender);
+    }
+
     private void registerAndVerify(String username, String email, int emailNumber) throws Exception {
         mvc.perform(post("/auth/register")
                         .contentType("application/json")
@@ -109,3 +154,4 @@ class AuthExpenseFlowTests {
                 .andExpect(status().isNoContent());
     }
 }
+
