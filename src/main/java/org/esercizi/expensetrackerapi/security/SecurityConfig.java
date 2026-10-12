@@ -29,6 +29,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -43,12 +45,16 @@ public class SecurityConfig {
     private String jwtSecret;
     @Value("${app.frontend-url}")
     private String frontendUrl;
+    @Value("${app.require-auth-origin:false}")
+    private boolean requireAuthOrigin;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity httpSecurity
     ) {
         return httpSecurity
+                .addFilterBefore(new AuthOriginFilter(frontendUrl, requireAuthOrigin),
+                        UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         session ->
                                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -65,12 +71,14 @@ public class SecurityConfig {
                         auth ->
                                 auth.requestMatchers(HttpMethod.POST,
                                                 "/auth/login",
+                                "/auth/demo",
                                                 "/auth/register",
                                                 "/auth/refresh",
                                                 "/auth/logout",
                                                 "/auth/verify-email"
                                         ).permitAll()
-                                        .anyRequest().authenticated()
+                                        .requestMatchers(HttpMethod.GET, "/health").permitAll()
+                                .anyRequest().authenticated()
                 )
                 .build();
     }
@@ -119,3 +127,4 @@ public class SecurityConfig {
     }
 
 }
+

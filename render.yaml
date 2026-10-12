@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: expense-tracker-api-demo
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: master
+    healthCheckPath: /health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo
+      - key: FRONTEND_URL
+        value: https://gestionale-spese.vercel.app
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=65.0 -XX:+ExitOnOutOfMemoryError
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEMO_PASSWORD
+        generateValue: true
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
