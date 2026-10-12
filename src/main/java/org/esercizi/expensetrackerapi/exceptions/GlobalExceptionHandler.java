@@ -14,6 +14,14 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(RegistrationConflictException.class)
+    public ResponseEntity<APIError> handleRegistrationConflict(
+            RegistrationConflictException exception, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        return ResponseEntity.status(status).body(new APIError(
+                exception.getErrorName(), exception.getMessage(), request.getRequestURI(), Instant.now(), status));
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<APIError> handleBadCredentials(BadCredentialsException exception, HttpServletRequest request) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
@@ -115,3 +123,4 @@ public class GlobalExceptionHandler {
                 ));
     }
 }
+

@@ -146,8 +146,8 @@ Sono presenti il test di avvio del contesto e un test di integrazione con MySQL 
 
 ## Limiti attuali
 
-- l'API non è ancora pubblicata;
-- la configurazione CORS è limitata all'ambiente Angular locale;
+- API demo pubblicata su Render Free; registrazione pubblica disabilitata in attesa del provider email HTTPS;
+- CORS configurabile tramite FRONTEND_URL e origine delle POST auth verificata nel profilo demo;
 - entrate e dashboard sono implementate in parte, ma richiedono test dedicati e verifica con il frontend;
 - il percorso completo nel browser con Mailpit resta da verificare;
 - restano da ampliare i test dei casi limite del CRUD e configurare cookie/CORS/URL per la produzione.
@@ -179,3 +179,7 @@ Fabio Zagaria — Junior Backend Developer con competenze full stack.
 ## Preparazione demo pubblica
 
 Configurazione demo in preparazione: vedere [deploy e verifiche](docs/DEPLOYMENT.md). La disponibilità del backend pubblico resta da verificare.
+
+## Controllo registrazione
+
+POST /auth/register salva User con password BCrypt, ruolo USER ed email non verificata. Prima del salvataggio controlla username/email già presenti e restituisce 409 con errorName specifico. In locale invia il link tramite SMTP/Mailpit; nella demo pubblica la registrazione resta disabilitata fino alla configurazione di un provider HTTPS.
