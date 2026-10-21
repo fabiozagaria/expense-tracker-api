@@ -8,19 +8,19 @@
 Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione corrente fornisce API persistenti per le spese personali, la creazione e lettura delle entrate e un riepilogo dei totali per utente.
 
 - [Repository frontend](https://github.com/fabiozagaria/expense-tracker-angular)
-- [Demo frontend](https://gestionale-spese.vercel.app/)
+- [Demo full stack](https://gestionale-spese.vercel.app/)
 
 ## Stato del progetto
 
-**In consolidamento — CRUD spese e autenticazione coperti da test di integrazione; entrate e dashboard presenti nel codice, da verificare nel percorso completo.**
+**Demo pubblica su Render con MySQL Aiven/TLS; CRUD spese e autenticazione coperti da test di integrazione. Restano da ampliare i test di entrate, dashboard e casi limite.**
 
-Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione per l'utente autenticato. Registrazione con verifica email, BCrypt, login JWT, refresh token ruotato in cookie HttpOnly e logout sono coperti da un test di integrazione con MySQL e invio email simulato. La prova manuale nel browser e la pubblicazione dell'API restano aperte.
+Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione per l'utente autenticato. Registrazione con verifica email, BCrypt, login JWT, refresh token ruotato in cookie HttpOnly e logout sono coperti da un test di integrazione con MySQL e invio email simulato. Le verifiche pubbliche documentate del 12 ottobre 2026 coprono health, login demo, lettura spese/entrate/dashboard, refresh e logout. Il frontend Vercel è collegato all'API; il relativo README documenta anche la verifica browser del CRUD spese. La registrazione pubblica resta disabilitata in attesa di un provider email HTTPS; la verifica completa della registrazione locale con Mailpit resta aperta.
 
 ## Scopo e confine della versione
 
-Expense Tracker è il prodotto full stack di riferimento per API MVC, DTO, validazione, transazioni, autenticazione e isolamento dei dati. Il prossimo traguardo è verificare insieme backend e frontend nel browser, includendo spese, entrate e riepilogo, prima di ampliare le funzionalità.
+Expense Tracker è il prodotto full stack di riferimento per API MVC, DTO, validazione, transazioni, autenticazione e isolamento dei dati. La demo distribuita è disponibile; il consolidamento riguarda regressioni, isolamento dei dati, registrazione locale e casi limite. Nessuna nuova funzionalità è necessaria per documentare correttamente lo scope corrente.
 
-La presenza di endpoint e test nel repository è distinta dalla verifica dell'intero flusso distribuito.
+Le prove manuali documentate non equivalgono a una copertura automatica completa o a una certificazione per uso in produzione.
 
 ## Implementato
 
@@ -35,7 +35,7 @@ La presenza di endpoint e test nel repository è distinta dalla verifica dell'in
 - gestione dell'assenza di una spesa tramite eccezione dedicata;
 - connessione MySQL configurabile tramite variabile d'ambiente;
 - serializzazione delle date ISO con Jackson;
-- test di avvio del contesto Spring.
+- test di avvio del contesto Spring;
 - registrazione, verifica email, login, refresh e logout sotto `/auth`;
 - JWT Bearer per `/api/expenses`, isolamento delle spese per proprietario e CORS per il frontend locale;
 - test di integrazione del flusso autenticazione e spese personali;
@@ -147,20 +147,19 @@ Sono presenti il test di avvio del contesto e un test di integrazione con MySQL 
 ## Limiti attuali
 
 - API demo pubblicata su Render Free; registrazione pubblica disabilitata in attesa del provider email HTTPS;
-- CORS configurabile tramite FRONTEND_URL e origine delle POST auth verificata nel profilo demo;
-- entrate e dashboard sono implementate in parte, ma richiedono test dedicati e verifica con il frontend;
+- CORS configurabile tramite `FRONTEND_URL` e origine delle POST auth verificata nel profilo demo;
+- entrate e dashboard presenti e letture verificate sull'API pubblica; mancano test automatizzati dedicati e prove complete dei casi limite;
 - il percorso completo nel browser con Mailpit resta da verificare;
-- restano da ampliare i test dei casi limite del CRUD e configurare cookie/CORS/URL per la produzione.
+- restano da ampliare i test dei casi limite; la configurazione demo non equivale a una configurazione per dati personali o uso produttivo.
 
-## Prossimi sviluppi
+## Consolidamento successivo
 
-1. verificare registrazione, verifica email, login, refresh e logout nel browser con Angular e Mailpit;
-2. verificare spese, entrate, riepilogo e isolamento fra utenti, includendo modifiche ed eliminazioni;
-3. aggiungere test mirati sui casi limite e sui nuovi endpoint;
-4. configurare CORS, cookie e URL per gli ambienti e aggiornare la documentazione;
-5. dopo questo traguardo, scegliere un solo incremento: per esempio filtri/paginazione oppure report mensile.
+1. completare la verifica della registrazione locale con Angular e Mailpit;
+2. ampliare regressioni, isolamento fra utenti e casi limite di spese, entrate e dashboard;
+3. integrare e verificare un provider email HTTPS prima di abilitare la registrazione pubblica;
+4. scegliere eventuali nuove funzionalità soltanto con una decisione di scope separata.
 
-La configurazione attuale disabilita CSRF e usa il refresh cookie con `SameSite=Strict`: prima della pubblicazione va rivalutata rispetto alle origini e al flusso effettivi. Il logout revoca il refresh; un access token già emesso resta valido fino alla scadenza.
+La demo usa il proxy Vercel, un refresh cookie HttpOnly/Secure con `SameSite=Strict` e verifica dell'origine delle POST auth. Vedere [deploy e verifiche](docs/DEPLOYMENT.md) per ambienti, cookie e limiti. Il logout revoca il refresh; un access token già emesso resta valido fino alla scadenza.
 
 ## Versioning
 
@@ -176,9 +175,9 @@ Il backend segue la stessa versione funzionale del frontend:
 Fabio Zagaria — Junior Backend Developer con competenze full stack.
 
 
-## Preparazione demo pubblica
+## Demo pubblica
 
-Configurazione demo in preparazione: vedere [deploy e verifiche](docs/DEPLOYMENT.md). La disponibilità del backend pubblico resta da verificare.
+Frontend su [Vercel](https://gestionale-spese.vercel.app/), backend su [Render](https://expense-tracker-api-demo-plb9.onrender.com) e database MySQL Aiven con TLS. Il pulsante **Prova la demo** usa un account condiviso: inserire soltanto dati fittizi. Render Free può richiedere 2–3 minuti al primo avvio dopo la sospensione. Le verifiche pubbliche sono registrate al 12 ottobre 2026 in [deploy e verifiche](docs/DEPLOYMENT.md); non costituiscono un controllo di disponibilità in tempo reale.
 
 ## Controllo registrazione
 
