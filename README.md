@@ -97,52 +97,138 @@ Il dominio entrate non espone ancora un CRUD completo. Questi endpoint richiedon
 
 Gli endpoint `/api/expenses` richiedono `Authorization: Bearer <access token>` e restituiscono solo le spese dell'utente autenticato. Gli endpoint pubblici `POST /auth/register`, `/auth/verify-email`, `/auth/login`, `/auth/refresh` e `/auth/logout` gestiscono la sessione; il refresh token viaggia solo nel cookie HttpOnly.
 
-## Configurazione locale
+## Avvio da un clone pulito
 
-### Requisiti
+Eseguire i comandi dalla radice del repository. Scegliere uno dei due percorsi: il backend usa la porta 8080 e non va avviato contemporaneamente con Compose e Maven.
 
-- JDK 21 per l'avvio senza Docker
-- MySQL per l'avvio senza Docker
+### A. Ambiente completo con Docker Compose
 
-Il progetto usa il database `expense-tracker`. La password viene letta dalla variabile d'ambiente `DB_PASSWORD`.
+Prerequisiti: Docker Engine/Docker Desktop avviato, Docker Compose v2 e accesso HTTPS ai registry delle immagini e a Maven Central. Non servono JDK o MySQL installati sull'host.
 
-Esempio di preparazione del database:
+1. Creare `.env` a partire dal modello, soltanto se il file non esiste già:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   In PowerShell usare `Copy-Item .env.example .env`.
+
+2. Compilare tutte le variabili prima dell'avvio:
+
+   | Variabile | Utilizzo |
+   | --- | --- |
+   | `DB_PASSWORD` | Password dell'utente MySQL applicativo `expense_tracker` |
+   | `MYSQL_ROOT_PASSWORD` | Password dell'amministratore MySQL, distinta da quella applicativa |
+   | `SECRET_KEY` | Chiave JWT casuale di almeno 32 byte, da mantenere stabile tra i riavvii |
+
+   Usare valori propri, senza commettere `.env`, già ignorato da Git e dal contesto Docker. Se disponibile, `openssl rand -hex 32` genera una chiave casuale adatta a `SECRET_KEY`. Le variabili già esportate nella shell hanno precedenza sui valori di `.env`.
+
+3. Validare, costruire e avviare:
+
+   ```bash
+   docker compose config --quiet
+   docker compose build
+   docker compose up -d
+   ```
+
+Compose include già backend, MySQL 8 e Mailpit. Configura il backend verso `mysql:3306` e `mailpit:1025`; MySQL non espone la porta 3306 sull'host. Il backend attende l'healthcheck MySQL, mentre per Mailpit attende l'avvio del container.
+
+- Backend: `http://localhost:8080`; controllo HTTP: `http://localhost:8080/health`.
+- Mailpit: `http://localhost:8025`, per leggere le email di verifica.
+- Frontend Angular, avviato separatamente: `http://localhost:4200`, origine e destinazione dei link di verifica configurate nello stack.
+
+Controllare stato e log:
+
+```bash
+docker compose ps
+docker compose logs --tail=100 backend mysql mailpit
+```
+
+`/health` conferma che il processo HTTP risponde; verificare anche login e lettura dati per controllare il database. Un errore di download legato a proxy o certificati va risolto configurando l'ambiente, mantenendo attiva la verifica TLS.
+
+Arrestare senza eliminare i volumi:
+
+```bash
+docker compose down
+```
+
+Il volume MySQL conserva i dati. Le password di inizializzazione vengono applicate al primo avvio di un database vuoto: cambiare `.env` non aggiorna le credenziali di un volume già inizializzato. In quel caso occorre riallineare le credenziali con una procedura amministrativa, conservando i dati.
+
+### B. Backend nativo con Maven
+
+Prerequisiti: **JDK 21 completo** (`java` e `javac`, con `JAVA_HOME` coerente), MySQL raggiungibile e accesso HTTPS a Maven Central. Il Maven Wrapper incluso scarica Maven; non serve installarlo separatamente. Per registrare utenti serve anche SMTP compatibile con la configurazione locale: porta 1025, senza autenticazione e senza TLS.
+
+Predisporre su un'istanza MySQL di sviluppo due database separati e un utente dedicato. Esempio da eseguire come amministratore, sostituendo la password segnaposto e adattando l'host dell'utente se MySQL è remoto:
 
 ```sql
 CREATE DATABASE `expense-tracker`;
+CREATE DATABASE `expense-tracker-test`;
+CREATE USER 'expense_tracker'@'localhost' IDENTIFIED BY 'SOSTITUIRE_CON_PASSWORD_LOCALE';
+GRANT ALL PRIVILEGES ON `expense-tracker`.* TO 'expense_tracker'@'localhost';
+GRANT ALL PRIVILEGES ON `expense-tracker-test`.* TO 'expense_tracker'@'localhost';
 ```
 
-Linux e macOS:
+Se database o utente esistono già, verificarne configurazione e permessi senza ricrearli. Hibernate usa `ddl-auto=update`: l'applicazione può creare o aggiornare tabelle nel database indicato.
+
+Per Mailpit si può usare un'installazione locale oppure, se Docker è disponibile, avviare solo un container SMTP temporaneo in un altro terminale:
 
 ```bash
-export DB_PASSWORD="la-tua-password"
-./mvnw spring-boot:run
+docker run --rm --name expense-tracker-mailpit-local -p 127.0.0.1:1025:1025 -p 127.0.0.1:8025:8025 axllent/mailpit
+```
+
+Il comando non monta volumi; `Ctrl+C` lo arresta. Non avviarlo se Mailpit del percorso Compose occupa già le stesse porte. L'interfaccia è `http://localhost:8025`. Senza un servizio SMTP raggiungibile la registrazione non può completarsi; i link ricevuti puntano al frontend Angular locale.
+
+**Il file `.env` viene letto da Docker Compose, non automaticamente da Spring Boot avviato con Maven.** Impostare le variabili nella stessa shell che esegue Maven. Sostituire i segnaposto prima di procedere:
+
+Linux/macOS:
+
+```bash
+export DB_URL='jdbc:mysql://127.0.0.1:3306/expense-tracker'
+export DB_USERNAME='expense_tracker'
+export DB_PASSWORD='SOSTITUIRE_CON_PASSWORD_LOCALE'
+export SECRET_KEY='SOSTITUIRE_CON_CHIAVE_CASUALE_DI_ALMENO_32_BYTE'
+export MAIL_HOST='localhost'
 ```
 
 Windows PowerShell:
 
 ```powershell
-$env:DB_PASSWORD="la-tua-password"
+$env:DB_URL='jdbc:mysql://127.0.0.1:3306/expense-tracker'
+$env:DB_USERNAME='expense_tracker'
+$env:DB_PASSWORD='SOSTITUIRE_CON_PASSWORD_LOCALE'
+$env:SECRET_KEY='SOSTITUIRE_CON_CHIAVE_CASUALE_DI_ALMENO_32_BYTE'
+$env:MAIL_HOST='localhost'
+```
+
+`DB_PASSWORD` e `SECRET_KEY` sono obbligatorie. I default sono `DB_URL=jdbc:mysql://127.0.0.1:3306/expense-tracker`, `DB_USERNAME=root` e `MAIL_HOST=localhost`: gli esempi scelgono esplicitamente un utente dedicato. `MYSQL_ROOT_PASSWORD` serve al servizio MySQL di Compose, non al backend nativo. La porta SMTP predefinita è 1025; un servizio con autenticazione/TLS richiede configurazione aggiuntiva. Il MySQL dello stack Compose non è raggiungibile dall'host tramite porta 3306 con il Compose attuale.
+
+### Compilazione, test e avvio nativo
+
+I test **usano MySQL reale e non creano automaticamente un database isolato**. Possono aggiornare lo schema e inizializzare dati demo: indirizzarli esclusivamente a un database dedicato ai test, senza dati personali o condivisi. Non usare il database della demo pubblica. L'invio email nei test di autenticazione è simulato.
+
+Con le variabili precedenti già impostate, compilare, eseguire i test sul database dedicato e produrre il JAR:
+
+```bash
+(DB_URL='jdbc:mysql://127.0.0.1:3306/expense-tracker-test' ./mvnw clean verify) &&
+  ./mvnw spring-boot:run
+```
+
+La subshell limita il cambio di `DB_URL` ai test; l'avvio successivo usa il database di sviluppo. In PowerShell:
+
+```powershell
+$developmentDbUrl = $env:DB_URL
+try {
+    $env:DB_URL='jdbc:mysql://127.0.0.1:3306/expense-tracker-test'
+    ./mvnw.cmd clean verify
+    if ($LASTEXITCODE -ne 0) { throw 'Build Maven non riuscita.' }
+} finally {
+    $env:DB_URL=$developmentDbUrl
+}
+# Avviare solo dopo aver verificato che la build sia riuscita.
 ./mvnw.cmd spring-boot:run
 ```
 
-Per l'autenticazione serve anche `SECRET_KEY` (chiave casuale di almeno 32 byte, da impostare nell'ambiente e mai versionare). Il servizio userà `http://localhost:8080` e accetta il frontend locale su `http://localhost:4200`.
-
-### Avvio con Docker Compose
-
-1. Copiare `.env.example` in `.env` e compilare `DB_PASSWORD`, `MYSQL_ROOT_PASSWORD` e `SECRET_KEY` con valori propri. `.env` è ignorato da Git e dal contesto Docker.
-2. Avviare lo stack con `docker compose up --build -d`.
-3. Aprire Mailpit su `http://localhost:8025` per leggere il link di verifica email; avviare Angular su `http://localhost:4200`.
-
-Compose avvia backend, MySQL 8 e Mailpit. Il database usa un volume persistente e non espone la porta 3306 sull'host. Backend e Mailpit sono accessibili solo da `localhost`. Per fermare i container: `docker compose down` (il volume MySQL resta disponibile).
-
-## Verifiche
-
-```bash
-./mvnw test
-```
-
-Sono presenti il test di avvio del contesto e un test di integrazione con MySQL per registrazione, verifica email, login, refresh, Bearer e isolamento delle spese. L'invio email è simulato nel test.
+Il backend risponde su `http://localhost:8080`; arrestarlo con `Ctrl+C`. `FRONTEND_URL` ha default `http://localhost:4200` e controlla CORS e link di verifica. Per provare registrazione e verifica dal browser avviare anche il frontend Angular.
 
 ## Limiti attuali
 

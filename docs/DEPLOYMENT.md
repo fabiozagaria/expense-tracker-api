@@ -1,6 +1,6 @@
 # Demo portfolio: Render + Aiven + Vercel
 
-Preparazione del codice; pubblicazione e verifica nel browser ancora da completare.
+Demo pubblicata; le verifiche storiche sono riportate sotto con la relativa data e non attestano la disponibilità attuale. Per lo sviluppo locale seguire i due percorsi nel [README](../README.md#avvio-da-un-clone-pulito).
 
 ## Backend
 
@@ -24,7 +24,7 @@ La demo usa un account condiviso: visitatori diversi possono cambiare gli stessi
 
 In locale resta SMTP/Mailpit. La demo non invia email e blocca la registrazione. La futura integrazione HTTPS richiede un provider e un mittente verificato; non basta cambiare host o porta SMTP.
 
-## Verifica prima della pubblicazione
+## Checklist per nuovi deploy (non equivale a verifiche completate)
 
 - Test backend con MySQL e test Angular, più build production.
 - Render avviato senza errori, TLS MySQL verificato e nome pubblico corretto nelle rewrites.
@@ -36,12 +36,20 @@ In locale resta SMTP/Mailpit. La demo non invia email e blocca la registrazione.
 
 ## Verifiche locali eseguite
 
-2026-10-12: 5 test backend passati con MySQL 8.4 temporaneo; 25 test Angular passati e build production riuscita (warning sul budget iniziale già superiore a 500 kB). TLS Aiven e proxy Vercel richiedono la prova con le risorse pubbliche.
+2026-10-12: 5 test backend passati con MySQL 8.4 temporaneo; 25 test Angular passati e build production riuscita (warning sul budget iniziale già superiore a 500 kB). In quella prova locale TLS Aiven e proxy Vercel non erano verificati; vedere la successiva verifica pubblica del 12 ottobre.
 
 ## Servizio Render creato
 
-Servizio `expense-tracker-api-demo`, piano Free, regione Frankfurt, branch `demo/render-aiven-setup`. Certificato e variabili configurati; `DB_PASSWORD` inserita dal proprietario. Deploy Render live e API verificate. Pubblicazione del frontend in corso.
+Servizio `expense-tracker-api-demo`, piano Free, regione Frankfurt, inizialmente dal branch `demo/render-aiven-setup` (il Blueprint attuale indica `master`). Certificato e variabili configurati; `DB_PASSWORD` inserita dal proprietario. Deploy Render e API verificati il 12 ottobre 2026. Il frontend è pubblicato su `https://gestionale-spese.vercel.app`; questa nota non costituisce una nuova verifica browser.
 
 ## Verifica backend pubblico — 2026-10-12
 
 Deploy Render `dep-db6g54ad0e5s73akjl20` live. `/health`, login demo, lettura spese/entrate/dashboard e refresh restituiscono 200; logout restituisce 204 e il refresh dopo logout 401. Cookie HttpOnly, Secure, SameSite=Strict e Path=/auth verificati. Connessione MySQL riuscita con la configurazione VERIFY_IDENTITY e il certificato Aiven. Avvio dell'app circa 143 secondi su Render Free; la UI deve considerare 2–3 minuti.
+
+## Verifica infrastruttura locale — 2026-10-22
+
+L'analisi del commit `9c5a681` ha validato Compose e verificato compilazione, packaging e 7 test Maven con JDK 21 e MySQL temporaneo in RAM. In un container di prova sono riusciti registrazione con ricezione email in Mailpit, verifica email, login, CRUD spese, lettura entrate/dashboard, refresh e logout. Nessun dato persistente è stato usato o alterato.
+
+La build Docker originale è stata tentata ma bloccata al download Maven da un certificato non riconosciuto del proxy remoto. La prova del JAR con configurazione proxy/trust esterna al progetto non certifica la build integrale del Dockerfile originale. Nessuna verifica TLS è stata disabilitata.
+
+Restano da verificare build e avvio integrali del Compose originale in un ambiente HTTPS funzionante e registrazione completa nel browser locale con Angular e Mailpit. Le prove locali non aggiornano le verifiche della demo pubblica del 12 ottobre.
