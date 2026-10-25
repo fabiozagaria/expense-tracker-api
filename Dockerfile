@@ -5,7 +5,8 @@ COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
 COPY src/ src/
-RUN ./mvnw -B -q -DskipTests package
+# Transport tests need no database or real email credentials.
+RUN ./mvnw -B -q -Dtest=BrevoVerificationEmailSenderTests test && ./mvnw -B -q -DskipTests package
 
 FROM eclipse-temurin:21-jre
 
