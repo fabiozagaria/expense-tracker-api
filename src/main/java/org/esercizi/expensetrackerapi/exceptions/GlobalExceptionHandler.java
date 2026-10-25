@@ -14,6 +14,13 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(NotFoundIncomeException.class)
+    public ResponseEntity<APIError> handleNotFoundIncome(NotFoundIncomeException exception, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return ResponseEntity.status(status).body(new APIError(
+                "NOT_FOUND_INCOME", exception.getMessage(), request.getRequestURI(), Instant.now(), status));
+    }
+
     @ExceptionHandler(EmailDeliveryException.class)
     public ResponseEntity<APIError> handleEmailDelivery(EmailDeliveryException exception, HttpServletRequest request) {
         HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
