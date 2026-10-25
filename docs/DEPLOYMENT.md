@@ -7,7 +7,7 @@ Demo pubblicata; le verifiche storiche sono riportate sotto con la relativa data
 1. Creare un database Aiven MySQL sul piano Free, verificando disponibilità e limiti nell'account. Usare un database dedicato alla demo, senza dati personali.
 2. Configurare il certificato CA pubblico fornito da Aiven nella variabile Render `AIVEN_CA_CERT`, oppure come secret file `aiven-ca.pem` (montato in `/etc/secrets/aiven-ca.pem`). L'entrypoint crea un truststore temporaneo; Connector/J verifica CA e hostname con `VERIFY_IDENTITY`.
 3. Il Blueprint `render.yaml` usa soltanto un web service Docker Free. Impostare `DB_URL` nel formato `jdbc:mysql://HOST:PORT/defaultdb` (senza parametri che disabilitano TLS), `DB_USERNAME` e `DB_PASSWORD`. Render genera `SECRET_KEY` e `DEMO_PASSWORD`. Non copiare i segreti nel repository.
-4. Il profilo `demo` disabilita la registrazione e crea un account USER verificato e dati fittizi solo alla prima inizializzazione. Ai riavvii aggiorna la password demo ma conserva i dati. Non usare questo profilo su un database personale o di produzione.
+4. Il profilo `demo` disabilita per default la registrazione e crea un account USER verificato e dati fittizi solo alla prima inizializzazione. Ai riavvii aggiorna la password demo ma conserva i dati. Non usare questo profilo su un database personale o di produzione.
 5. `GET /health` indica che il processo HTTP è avviato; non certifica la disponibilità del database. Controllare anche un login demo e una lettura dati.
 
 ## Frontend
@@ -22,7 +22,23 @@ La demo usa un account condiviso: visitatori diversi possono cambiare gli stessi
 
 ## Email
 
-In locale resta SMTP/Mailpit. La demo non invia email e blocca la registrazione. La futura integrazione HTTPS richiede un provider e un mittente verificato; non basta cambiare host o porta SMTP.
+In locale resta SMTP/Mailpit (`MAIL_PROVIDER=smtp`, default). Per inviare online tramite Brevo HTTPS configurare nelle variabili d'ambiente Render:
+
+| Variabile | Valore |
+| --- | --- |
+| `MAIL_PROVIDER` | `brevo` |
+| `BREVO_API_KEY` | Chiave API Brevo, non chiave SMTP; segreto solo su Render |
+| `MAIL_FROM` | Indirizzo del mittente verificato in Brevo |
+| `FRONTEND_URL` | `https://gestionale-spese.vercel.app` |
+| `REGISTRATION_ENABLED` | `true` per abilitare l'endpoint dopo la configurazione |
+
+Il frontend deve avere anche il blocco del form online rimosso: il solo flag backend non abilita il pulsante Angular. Il profilo demo resta disabilitato per default. Non cambiare `SPRING_PROFILES_ACTIVE` per abilitare le email.
+
+Brevo usa una POST HTTPS con timeout di connessione di 5 secondi e lettura di 10 secondi. Un errore HTTP/rete produce 503 `EMAIL_DELIVERY_FAILED`, senza esporre la risposta del provider. L'eccezione runtime provoca il rollback della transazione di registrazione: l'utente può riprovare. Non ci sono retry automatici dell'invio. L'accettazione da Brevo non garantisce la consegna: controllare i log transazionali e la posta indesiderata.
+
+Dopo il deploy provare con un indirizzo reale: registrazione, ricezione email, link su `/verify-email`, login e isolamento dati. Provare anche login prima della verifica, token scaduto e username/email duplicati. Non dichiarare la registrazione pubblica verificata prima di questa prova.
+
+Test del trasporto senza database o email reali: `./mvnw -Dtest=BrevoVerificationEmailSenderTests test` con JDK 21. Il test controlla payload/autenticazione, errori del provider e configurazione mancante. Le regressioni esistenti richiedono MySQL di test isolato.
 
 ## Checklist per nuovi deploy (non equivale a verifiche completate)
 
@@ -53,3 +69,4 @@ L'analisi del commit `9c5a681` ha validato Compose e verificato compilazione, pa
 La build Docker originale è stata tentata ma bloccata al download Maven da un certificato non riconosciuto del proxy remoto. La prova del JAR con configurazione proxy/trust esterna al progetto non certifica la build integrale del Dockerfile originale. Nessuna verifica TLS è stata disabilitata.
 
 Restano da verificare build e avvio integrali del Compose originale in un ambiente HTTPS funzionante e registrazione completa nel browser locale con Angular e Mailpit. Le prove locali non aggiornano le verifiche della demo pubblica del 12 ottobre.
+
