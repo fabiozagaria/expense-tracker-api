@@ -1,116 +1,116 @@
 # Gestionale Spese — Backend API
 
-![Versione](https://img.shields.io/badge/versione-0.3.0--SNAPSHOT-blue)
-![Stato](https://img.shields.io/badge/stato-in%20sviluppo-orange)
+![Versione](https://img.shields.io/badge/versione-1.0.0-blue)
+![Java](https://img.shields.io/badge/Java-21-blue)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
+![Stato](https://img.shields.io/badge/perimetro_funzionale-completato-success)
 
-**Versione attuale: 0.3.0-SNAPSHOT — API spese, entrate e riepilogo in consolidamento.**
+Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
-Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione corrente fornisce API persistenti per le spese personali, la creazione e lettura delle entrate e un riepilogo dei totali per utente.
+**Progetto concluso al 25 ottobre 2026 — versione 1.0.0.**
 
-- [Repository frontend](https://github.com/fabiozagaria/expense-tracker-angular)
-- [Demo full stack](https://gestionale-spese.vercel.app/)
+Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e funzionalità future da gestire con nuove versioni. Il progetto resta una demo portfolio, con limiti e verifiche residue dichiarati sotto.
 
-## Completamento entrate e liste — integrato (25 ottobre 2026)
+- [Applicazione online](https://gestionale-spese.vercel.app/)
+- [Frontend Angular](https://github.com/fabiozagaria/expense-tracker-angular)
+- [Health backend](https://expense-tracker-api-demo-plb9.onrender.com/health)
+- [Portfolio di Fabio Zagaria](https://fabio-zagaria-portfolio.vercel.app/)
 
-La modifica integrata completa il CRUD entrate (`GET /api/incomes/{id}`, `PUT`, `PATCH`, `DELETE`) con controllo del proprietario e risposta 404 per risorse assenti o altrui.
+## Funzionalità
 
-Le nuove liste Angular di spese ed entrate usano `GET /api/expenses/search` e `GET /api/incomes/search`:
+- CRUD completo di spese ed entrate: creazione, lettura, sostituzione, modifica parziale ed eliminazione.
+- Risorse associate all'utente autenticato; lettura, modifica ed eliminazione di risorse altrui restituiscono 404.
+- Liste paginate nel database con filtro mese/anno, ricerca e ordine per data e ID.
+- Dashboard con totale entrate, totale spese e saldo per proprietario.
+- Registrazione, verifica email, BCrypt, JWT Bearer, rotazione del refresh token e logout.
+- SMTP/Mailpit in locale e Brevo HTTPS online.
+- DTO dedicati, Jakarta Validation, transazioni sui metodi di scrittura e gestione centralizzata degli errori.
 
-- `page` da 0, `size` da 1 a 100 (default 10);
-- `month=yyyy-MM`, `order=newest|oldest` (data e ID, default più recenti);
-- `query`: titolo/descrizione senza distinzione maiuscole, importo esatto con punto o virgola, data esatta ISO o `gg/mm/aaaa`;
-- risposta stabile: `content`, `number`, `size`, `totalElements`, `totalPages`.
+## Architettura e struttura
 
-I precedenti GET che restituiscono array restano compatibili per dashboard e grafici. Il frontend offre modifica di tutti i campi e conferma di eliminazione. Footer con firma **fabiozagariadev**, portfolio e GitHub.
+Spring Boot 4.1, Java 21, Spring MVC, Spring Security OAuth2 Resource Server, Spring Data JPA/Hibernate, MySQL, Lombok e Maven Wrapper.
 
-Verifiche del 25 ottobre 2026: build Angular riuscita (avvisi budget già presenti), 62 test Angular e suite backend completa di 14 test passati con Java 21 e MySQL 8.0.46 temporaneo, senza errori o test saltati. Incluso `incomeCrudSearchAndOwnership`: CRUD entrate, filtri mese, ricerca testo/importo/data e isolamento fra due utenti. Nessun database online usato per i test. Corretto il collegamento delle entrate dalla dashboard alla lista `/incomes`; deploy Vercel confermato. Il proprietario ha confermato che il caricamento delle liste funziona. Verifica browser responsive completa ancora aperta. Le sezioni storiche seguenti possono riferirsi allo stato precedente.
+Il controller gestisce HTTP e validazione del DTO; il service applica le regole e i confini transazionali; repository ed EntityManager gestiscono la persistenza. L'identità del proprietario deriva dal principal autenticato, non dal payload del client.
 
-## Stato del progetto
+| Percorso | Responsabilità |
+| --- | --- |
+| `src/main/java/org/esercizi/expensetrackerapi/controllers/` | Endpoint auth, spese, entrate, dashboard, demo e health |
+| `services/` nello stesso package | Logica applicativa, mapping DTO e ricerca tramite `MovementSearch` |
+| `services/mail/` | `VerificationEmailSender`, implementazioni SMTP e Brevo |
+| `repository/` | Repository JPA, query per proprietario e aggregazioni |
+| `model/` | Entità utenti, spese, entrate e token; categorie e ruoli |
+| `dto/` | Richieste, risposte e contratto stabile `MovementPage` |
+| `security/` | Configurazione Security, JWT, refresh e controllo Origin |
+| `exceptions/` | Eccezioni applicative, `GlobalExceptionHandler` e `APIError` |
+| `src/main/resources/` | Configurazione base e profilo `demo` |
+| `src/test/java/` | Test unitari, trasporto email e integrazione con MySQL |
+| `docker-compose.yaml` | API, MySQL 8.0 e Mailpit locali |
+| `Dockerfile`, `docker-entrypoint.sh` | Build Java 21 e truststore Aiven per il deploy |
+| `render.yaml` | Blueprint Render, configurato per `master` |
+| `docs/CONTEXT.md`, `docs/DEPLOYMENT.md` | Contesto tecnico e dettagli/storia delle verifiche |
 
-**Demo pubblica su Render con MySQL Aiven/TLS; CRUD spese e autenticazione coperti da test di integrazione. Restano da ampliare i test di entrate, dashboard e casi limite.**
+Spese ed entrate hanno ID `Long`, titolo, importo positivo `BigDecimal`, descrizione facoltativa, categoria enum, data `LocalDate` e proprietario. Titolo: 3–15 caratteri; descrizione: massimo 30; data odierna o passata. Le categorie dei due domini sono distinte.
 
-Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione per l'utente autenticato. Registrazione con verifica email, BCrypt, login JWT, refresh token ruotato in cookie HttpOnly e logout sono coperti da un test di integrazione con MySQL e invio email simulato. Le verifiche pubbliche documentate del 12 ottobre 2026 coprono health, login demo, lettura spese/entrate/dashboard, refresh e logout. Il frontend Vercel è collegato all'API; il relativo README documenta anche la verifica browser del CRUD spese. La registrazione pubblica con invio email tramite Brevo HTTPS è attiva; il proprietario ha confermato una registrazione reale il 25 ottobre 2026. La verifica completa della registrazione locale con Mailpit resta aperta.
+## Contratto REST
 
-## Scopo e confine della versione
+Per entrambi i prefissi `/api/expenses` e `/api/incomes`:
 
-Expense Tracker è il prodotto full stack di riferimento per API MVC, DTO, validazione, transazioni, autenticazione e isolamento dei dati. La demo distribuita è disponibile; il consolidamento riguarda regressioni, isolamento dei dati, registrazione locale e casi limite. Nessuna nuova funzionalità è necessaria per documentare correttamente lo scope corrente.
-
-Le prove manuali documentate non equivalgono a una copertura automatica completa o a una certificazione per uso in produzione.
-
-## Implementato
-
-- progetto Spring Boot 4.1 con Java 21;
-- entità JPA `Expense` con importo `BigDecimal`, descrizione, categoria e data;
-- categorie di spesa tramite `ExpenseCategory` salvate come stringhe;
-- persistenza con Spring Data JPA, `ExpenseRepository` ed `EntityManager`;
-- DTO separati per creazione, PUT, PATCH e risposta;
-- CRUD REST completo sotto `/api/expenses`;
-- validazione dei payload con Jakarta Validation;
-- metodi transazionali per creazione, modifica ed eliminazione;
-- gestione dell'assenza di una spesa tramite eccezione dedicata;
-- connessione MySQL configurabile tramite variabile d'ambiente;
-- serializzazione delle date ISO con Jackson;
-- test di avvio del contesto Spring;
-- registrazione, verifica email, login, refresh e logout sotto `/auth`;
-- JWT Bearer per `/api/expenses`, isolamento delle spese per proprietario e CORS per il frontend locale;
-- test di integrazione del flusso autenticazione e spese personali;
-- `GET` e `POST /api/incomes` per entrate associate all'utente autenticato;
-- `GET /api/dashboard/summary` per totale entrate, totale spese e saldo.
-
-## Modello attuale
-
-| Campo | Tipo | Note |
+| Metodo | Percorso relativo | Risultato |
 | --- | --- | --- |
-| `id` | `Long` | Chiave primaria generata dal database |
-| `title` | `String` | Obbligatorio e validato |
-| `amount` | `BigDecimal` | Importo positivo |
-| `description` | `String` | Descrizione facoltativa con lunghezza limitata |
-| `category` | `ExpenseCategory` | Enum persistito come stringa |
-| `date` | `LocalDate` | Data del movimento |
+| GET | prefisso base | Array dei movimenti del proprietario; usato anche dalla dashboard |
+| GET | `/search` | Pagina filtrata del proprietario |
+| GET | `/{id}` | Dettaglio, oppure 404 |
+| POST | prefisso base | Creazione, 201 con risposta del movimento |
+| PUT | `/{id}` | Sostituzione dei campi modificabili, 200 |
+| PATCH | `/{id}` | Modifica dei campi presenti e non null, 200 |
+| DELETE | `/{id}` | Eliminazione, 200 con risposta del movimento eliminato |
 
-## Tecnologie
+`GET /api/dashboard/summary` restituisce `totalIncome`, `totalExpense` e `balance`. Gli endpoint `/api/**` richiedono `Authorization: Bearer <access token>`.
 
-- Java 21
-- Spring Boot 4.1
-- Spring Web MVC
-- Spring Data JPA
-- Jakarta Validation
-- Jackson
-- MySQL
-- Maven Wrapper
+### Ricerca e paginazione
 
-## Architettura attuale
+Esempio: `GET /api/incomes/search?page=0&size=10&month=2026-10&order=newest&query=stipendio`.
 
-```mermaid
-flowchart LR
-    Client --> Controller
-    Controller --> Service
-    Service --> Repository
-    Repository --> MySQL
-```
+| Parametro | Comportamento |
+| --- | --- |
+| `page` | Indice da 0; default 0 |
+| `size` | Da 1 a 100; default 10 |
+| `month` | Facoltativo, formato `yyyy-MM` |
+| `order` | `newest` (default) oppure `oldest`; data e ID nella stessa direzione |
+| `query` | Massimo 100 caratteri; testo parziale su titolo/descrizione, senza distinzione maiuscole; oppure importo esatto con punto/virgola o data esatta ISO/`gg/mm/aaaa` |
 
-## Stato degli endpoint REST
+Mese, ricerca e proprietario sono combinati. Il testo è cercato letteralmente, con escape dei caratteri wildcard SQL. La risposta contiene `content`, `number`, `size`, `totalElements` e `totalPages`. Gli endpoint array preesistenti restano compatibili; i totali della dashboard non dipendono dalla pagina visualizzata.
 
-| Metodo | Endpoint | Stato |
+### Autenticazione
+
+| Metodo | Endpoint | Utilizzo |
 | --- | --- | --- |
-| `GET` | `/api/expenses` | Implementato |
-| `GET` | `/api/expenses/{id}` | Implementato |
-| `POST` | `/api/expenses` | Implementato |
-| `PUT` | `/api/expenses/{id}` | Implementato |
-| `PATCH` | `/api/expenses/{id}` | Implementato |
-| `DELETE` | `/api/expenses/{id}` | Implementato |
+| POST | `/auth/register` | Crea utente non verificato e invia email |
+| POST | `/auth/verify-email?token=...` | Conferma email |
+| POST | `/auth/login` | Access token e cookie refresh |
+| POST | `/auth/refresh` | Rotazione del refresh e nuovo access token |
+| POST | `/auth/logout` | Revoca del refresh e rimozione cookie |
+| POST | `/auth/demo` | Accesso condiviso, disponibile nel profilo demo |
 
-### Entrate e riepilogo
+JWT di accesso: 15 minuti. Refresh: 7 giorni, cookie HttpOnly con Path `/auth`. Online è Secure e SameSite=Strict. Il logout revoca il refresh; un access token già emesso resta valido fino alla scadenza.
 
-| Metodo | Endpoint | Comportamento presente |
-| --- | --- | --- |
-| `GET` | `/api/incomes` | Elenco entrate del proprietario |
-| `POST` | `/api/incomes` | Creazione entrata |
-| `GET` | `/api/dashboard/summary` | Totali e saldo del proprietario |
+Duplicati username/email: 409. Fallimento dell'invio email: 503 `EMAIL_DELIVERY_FAILED` e rollback della registrazione. La verifica email è necessaria prima del login.
 
-Il dominio entrate non espone ancora un CRUD completo. Questi endpoint richiedono autenticazione Bearer e non sono coperti dal test `AuthExpenseFlowTests` dedicato alle spese.
+## Deploy attuale
 
-Gli endpoint `/api/expenses` richiedono `Authorization: Bearer <access token>` e restituiscono solo le spese dell'utente autenticato. Gli endpoint pubblici `POST /auth/register`, `/auth/verify-email`, `/auth/login`, `/auth/refresh` e `/auth/logout` gestiscono la sessione; il refresh token viaggia solo nel cookie HttpOnly.
+| Componente | Configurazione |
+| --- | --- |
+| Frontend | Vercel: `https://gestionale-spese.vercel.app` |
+| Backend | Render: `expense-tracker-api-demo`, profilo `demo` |
+| Database | MySQL Aiven, TLS con verifica CA e hostname |
+| Email online | Brevo via HTTPS; registrazione abilitata |
+| Proxy | Vercel inoltra `/health`, `/auth/*` e `/api/*` a Render |
+
+Il servizio Render esistente segue `demo/render-aiven-setup`, allineato al merge funzionale di `master` il 25 ottobre 2026. Il Blueprint versionato indica invece `master`: un commit sul solo `master` non prova che il servizio esistente sia aggiornato.
+
+Variabili principali del deploy: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SECRET_KEY`, `DEMO_PASSWORD`, `SPRING_PROFILES_ACTIVE=demo`, `FRONTEND_URL=https://gestionale-spese.vercel.app`, `MAIL_PROVIDER=brevo`, `BREVO_API_KEY`, `MAIL_FROM` e `REGISTRATION_ENABLED=true`. La CA Aiven viene fornita con `AIVEN_CA_CERT` o secret file: vedere [deploy](docs/DEPLOYMENT.md). Segreti esclusivamente nell'ambiente.
+
+Il profilo demo mantiene la registrazione disabilitata come default; il deploy la abilita esplicitamente. Il pulsante **Prova la demo** usa un account condiviso: usare dati fittizi. Gli account personali restano separati tramite i controlli del backend. Render può richiedere un'attesa al risveglio; `/health` conferma HTTP, non tutte le dipendenze.
 
 ## Avvio da un clone pulito
 
@@ -245,42 +245,35 @@ try {
 
 Il backend risponde su `http://localhost:8080`; arrestarlo con `Ctrl+C`. `FRONTEND_URL` ha default `http://localhost:4200` e controlla CORS e link di verifica. Per provare registrazione e verifica dal browser avviare anche il frontend Angular.
 
-## Limiti attuali
 
-- API pubblicata su Render Free; registrazione pubblica e verifica email tramite Brevo HTTPS attive sul deploy, con prova reale confermata dal proprietario il 25 ottobre 2026;
-- CORS configurabile tramite `FRONTEND_URL` e origine delle POST auth verificata nel profilo demo;
-- entrate e dashboard presenti e letture verificate sull'API pubblica; mancano test automatizzati dedicati e prove complete dei casi limite;
-- il percorso completo nel browser con Mailpit resta da verificare;
-- restano da ampliare i test dei casi limite; la configurazione demo non equivale a una configurazione per dati personali o uso produttivo.
+## Verifiche e limiti
 
-## Consolidamento successivo
+Verifiche del **25 ottobre 2026**:
 
-1. completare la verifica della registrazione locale con Angular e Mailpit;
-2. ampliare regressioni, isolamento fra utenti e casi limite di spese, entrate e dashboard;
-3. ampliare le regressioni della registrazione pubblica, inclusi duplicati e fallimenti del provider email;
-4. scegliere eventuali nuove funzionalità soltanto con una decisione di scope separata.
+| Verifica | Esito |
+| --- | --- |
+| Suite backend completa, Java 21.0.13 e MySQL 8.0.46 temporaneo | 14 test passati, zero fallimenti/errori/skipped |
+| Suite Angular | 62 test passati |
+| Build Angular production | Riuscita; avvisi budget iniziale e CSS login/dashboard |
+| Registrazione online con email reale | Confermata dal proprietario |
+| Caricamento delle nuove liste online | Confermato dal proprietario |
+| Correzione link entrate dalla dashboard | Deploy Vercel confermato |
 
-La demo usa il proxy Vercel, un refresh cookie HttpOnly/Secure con `SameSite=Strict` e verifica dell'origine delle POST auth. Vedere [deploy e verifiche](docs/DEPLOYMENT.md) per ambienti, cookie e limiti. Il logout revoca il refresh; un access token già emesso resta valido fino alla scadenza.
+La suite include autenticazione/sessione, CRUD e isolamento spese, CRUD entrate e accessi altrui respinti, ricerca mese/testo/importo/data, contesto applicativo, flusso demo e trasporto Brevo simulato. I test MySQL hanno usato un database temporaneo locale, senza dati online; non attestano copertura di ogni caso limite o un audit di sicurezza.
 
-## Versioning
+Restano aperti il controllo visivo sistematico desktop/mobile nei due temi, il percorso completo nel browser locale con Angular e Mailpit e la build/avvio integrali del Compose originale in un ambiente senza i problemi TLS del proxy della precedente prova. La versione funzionale è conclusa; nuove funzionalità sono rinviate a versioni future.
 
-Il backend segue la stessa versione funzionale del frontend:
 
-- `0.3.0-SNAPSHOT` identifica lo sviluppo della release Expense Tracker `0.3.0`;
-- `PATCH` per correzioni compatibili;
-- `MINOR` per nuove funzionalità durante la fase `0.x`;
-- rimozione del suffisso `SNAPSHOT` quando viene prodotto un artefatto di release.
+## Versioning e manutenzione
+
+Prima versione funzionalmente conclusa: **1.0.0**, riferimento **25 ottobre 2026**. POM e nome JAR nel Dockerfile sono allineati; il cambio dei manifest non crea automaticamente un tag Git o una GitHub Release.
+
+- **PATCH** (`1.0.1`): correzioni compatibili e manutenzione/refactoring senza cambiare il contratto pubblico.
+- **MINOR** (`1.1.0`): nuove funzionalità compatibili.
+- **MAJOR** (`2.0.0`): modifiche incompatibili del contratto pubblico.
 
 ## Autore
 
-Fabio Zagaria — Junior Backend Developer con competenze full stack.
+**Fabio Zagaria · fabiozagariadev** — Junior Backend Developer con competenze full stack.
 
-
-## Demo pubblica
-
-Frontend su [Vercel](https://gestionale-spese.vercel.app/), backend su [Render](https://expense-tracker-api-demo-plb9.onrender.com) e database MySQL Aiven con TLS. Il pulsante **Prova la demo** usa un account condiviso: inserire soltanto dati fittizi. Render Free può richiedere 2–3 minuti al primo avvio dopo la sospensione. Le verifiche pubbliche sono registrate al 12 ottobre 2026 in [deploy e verifiche](docs/DEPLOYMENT.md); non costituiscono un controllo di disponibilità in tempo reale.
-
-## Controllo registrazione
-
-POST /auth/register salva User con password BCrypt, ruolo USER ed email non verificata. Prima del salvataggio controlla username/email già presenti e restituisce 409 con errorName specifico. In locale invia il link tramite SMTP/Mailpit; online può inviare tramite Brevo HTTPS; configurazione e prova reale sono descritte in `docs/DEPLOYMENT.md`.
-
+[Portfolio](https://fabio-zagaria-portfolio.vercel.app/) · [GitHub](https://github.com/fabiozagaria)

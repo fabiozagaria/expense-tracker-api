@@ -11,7 +11,7 @@ FROM eclipse-temurin:21-jre
 
 RUN groupadd --system app && useradd --system --gid app --home-dir /app app
 WORKDIR /app
-COPY --from=build --chown=app:app /workspace/target/expense-tracker-api-0.3.0-SNAPSHOT.jar app.jar
+COPY --from=build --chown=app:app /workspace/target/expense-tracker-api-1.0.0.jar app.jar
 COPY --chown=app:app docker-entrypoint.sh /app/docker-entrypoint.sh
 USER app
 EXPOSE 8080
