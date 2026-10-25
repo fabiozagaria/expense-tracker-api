@@ -10,9 +10,9 @@ Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione co
 - [Repository frontend](https://github.com/fabiozagaria/expense-tracker-angular)
 - [Demo full stack](https://gestionale-spese.vercel.app/)
 
-## Completamento entrate e liste — PR in verifica (25 ottobre 2026)
+## Completamento entrate e liste — integrato (25 ottobre 2026)
 
-La modifica proposta completa il CRUD entrate (`GET /api/incomes/{id}`, `PUT`, `PATCH`, `DELETE`) con controllo del proprietario e risposta 404 per risorse assenti o altrui.
+La modifica integrata completa il CRUD entrate (`GET /api/incomes/{id}`, `PUT`, `PATCH`, `DELETE`) con controllo del proprietario e risposta 404 per risorse assenti o altrui.
 
 Le nuove liste Angular di spese ed entrate usano `GET /api/expenses/search` e `GET /api/incomes/search`:
 
@@ -23,7 +23,7 @@ Le nuove liste Angular di spese ed entrate usano `GET /api/expenses/search` e `G
 
 I precedenti GET che restituiscono array restano compatibili per dashboard e grafici. Il frontend offre modifica di tutti i campi e conferma di eliminazione. Footer con firma **fabiozagariadev**, portfolio e GitHub.
 
-Verifiche locali: build Angular riuscita (avvisi budget già presenti), 62 test Angular e 6 test backend mirati passati con Java 21. Il nuovo test di integrazione `incomeCrudSearchAndOwnership` richiede MySQL dedicato: non eseguito in questo ambiente. Verifica browser responsive e deploy ancora aperti. Le sezioni seguenti descrivono la versione pubblicata precedente alla PR.
+Verifiche del 25 ottobre 2026: build Angular riuscita (avvisi budget già presenti), 62 test Angular e suite backend completa di 14 test passati con Java 21 e MySQL 8.0.46 temporaneo, senza errori o test saltati. Incluso `incomeCrudSearchAndOwnership`: CRUD entrate, filtri mese, ricerca testo/importo/data e isolamento fra due utenti. Nessun database online usato per i test. Corretto il collegamento delle entrate dalla dashboard alla lista `/incomes`; deploy Vercel confermato. Il proprietario ha confermato che il caricamento delle liste funziona. Verifica browser responsive completa ancora aperta. Le sezioni storiche seguenti possono riferirsi allo stato precedente.
 
 ## Stato del progetto
 
