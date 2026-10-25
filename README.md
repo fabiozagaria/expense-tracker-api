@@ -14,7 +14,7 @@ Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione co
 
 **Demo pubblica su Render con MySQL Aiven/TLS; CRUD spese e autenticazione coperti da test di integrazione. Restano da ampliare i test di entrate, dashboard e casi limite.**
 
-Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione per l'utente autenticato. Registrazione con verifica email, BCrypt, login JWT, refresh token ruotato in cookie HttpOnly e logout sono coperti da un test di integrazione con MySQL e invio email simulato. Le verifiche pubbliche documentate del 12 ottobre 2026 coprono health, login demo, lettura spese/entrate/dashboard, refresh e logout. Il frontend Vercel è collegato all'API; il relativo README documenta anche la verifica browser del CRUD spese. La registrazione pubblica resta disabilitata in attesa di un provider email HTTPS; la verifica completa della registrazione locale con Mailpit resta aperta.
+Il dominio `Expense` espone le operazioni di lettura, creazione, sostituzione, aggiornamento parziale ed eliminazione per l'utente autenticato. Registrazione con verifica email, BCrypt, login JWT, refresh token ruotato in cookie HttpOnly e logout sono coperti da un test di integrazione con MySQL e invio email simulato. Le verifiche pubbliche documentate del 12 ottobre 2026 coprono health, login demo, lettura spese/entrate/dashboard, refresh e logout. Il frontend Vercel è collegato all'API; il relativo README documenta anche la verifica browser del CRUD spese. Il trasporto Brevo HTTPS è implementato; la registrazione pubblica richiede configurazione del provider e verifica del deploy; la verifica completa della registrazione locale con Mailpit resta aperta.
 
 ## Scopo e confine della versione
 
@@ -232,7 +232,7 @@ Il backend risponde su `http://localhost:8080`; arrestarlo con `Ctrl+C`. `FRONTE
 
 ## Limiti attuali
 
-- API demo pubblicata su Render Free; registrazione pubblica disabilitata in attesa del provider email HTTPS;
+- API demo pubblicata su Render Free; registrazione pubblica disabilitata per default; trasporto Brevo HTTPS configurabile;
 - CORS configurabile tramite `FRONTEND_URL` e origine delle POST auth verificata nel profilo demo;
 - entrate e dashboard presenti e letture verificate sull'API pubblica; mancano test automatizzati dedicati e prove complete dei casi limite;
 - il percorso completo nel browser con Mailpit resta da verificare;
@@ -242,7 +242,7 @@ Il backend risponde su `http://localhost:8080`; arrestarlo con `Ctrl+C`. `FRONTE
 
 1. completare la verifica della registrazione locale con Angular e Mailpit;
 2. ampliare regressioni, isolamento fra utenti e casi limite di spese, entrate e dashboard;
-3. integrare e verificare un provider email HTTPS prima di abilitare la registrazione pubblica;
+3. configurare Brevo e verificare il flusso online prima di abilitare il form pubblico;
 4. scegliere eventuali nuove funzionalità soltanto con una decisione di scope separata.
 
 La demo usa il proxy Vercel, un refresh cookie HttpOnly/Secure con `SameSite=Strict` e verifica dell'origine delle POST auth. Vedere [deploy e verifiche](docs/DEPLOYMENT.md) per ambienti, cookie e limiti. Il logout revoca il refresh; un access token già emesso resta valido fino alla scadenza.
@@ -267,4 +267,5 @@ Frontend su [Vercel](https://gestionale-spese.vercel.app/), backend su [Render](
 
 ## Controllo registrazione
 
-POST /auth/register salva User con password BCrypt, ruolo USER ed email non verificata. Prima del salvataggio controlla username/email già presenti e restituisce 409 con errorName specifico. In locale invia il link tramite SMTP/Mailpit; nella demo pubblica la registrazione resta disabilitata fino alla configurazione di un provider HTTPS.
+POST /auth/register salva User con password BCrypt, ruolo USER ed email non verificata. Prima del salvataggio controlla username/email già presenti e restituisce 409 con errorName specifico. In locale invia il link tramite SMTP/Mailpit; online può inviare tramite Brevo HTTPS; configurazione e prova reale sono descritte in `docs/DEPLOYMENT.md`.
+

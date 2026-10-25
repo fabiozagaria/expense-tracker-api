@@ -47,3 +47,8 @@ Controllo server di username/email duplicati prima di salvare User e inviare ema
 - La configurazione Compose è stata validata. La build Docker originale si è fermata al download Maven per il certificato del proxy dell'ambiente remoto; non è dichiarata riuscita. Il JAR è stato verificato in un container di prova con configurazione proxy/trust esterna al repository.
 - README distingue ambiente Compose e avvio Maven. `.env` è letto da Compose; Maven richiede variabili esportate. I test richiedono un database MySQL dedicato e isolato.
 - Restano la verifica integrale della build/avvio Compose originale in un ambiente HTTPS funzionante e la registrazione locale nel browser con Angular.
+
+
+## Brevo HTTPS — 2026-10-25
+
+Trasporto email separato tramite VerificationEmailSender: SMTP/Mailpit predefinito, Brevo selezionato con MAIL_PROVIDER=brevo. MAIL_FROM e BREVO_API_KEY sono configurazione esterna. Il profilo demo consente REGISTRATION_ENABLED mantenendo false come default. Errori Brevo: 503 EMAIL_DELIVERY_FAILED e rollback della registrazione. Aggiunti test HTTP simulati; in questo ambiente non eseguiti perché Maven Central non è raggiungibile e il JDK disponibile è 17 anziché 21. Invio reale e deploy non verificati.

@@ -6,8 +6,7 @@ import org.esercizi.expensetrackerapi.exceptions.InvalidVerificationTokenExcepti
 import org.esercizi.expensetrackerapi.model.EmailVerificationToken;
 import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.EmailVerificationTokenRepository;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.esercizi.expensetrackerapi.services.mail.VerificationEmailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +22,7 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class EmailService {
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
-    private final JavaMailSender javaMailSender;
+    private final VerificationEmailSender verificationEmailSender;
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
@@ -79,20 +78,15 @@ public class EmailService {
 
     public void sendVerificationEmail(User user, String rawToken) {
         String verificationUrl = frontendUrl + "/verify-email?token=" + rawToken;
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(user.getEmail());
-        mailMessage.setFrom("noreply@expense-tracker.local");
-        mailMessage.setSubject("Conferma il tuo account");
-
-        mailMessage.setText("""
+        String text = """
                 Ciao %s,
                 
                 clicca sul link per verificare il tuo account:
                 
                 %s
-                """.formatted(user.getUsername(), verificationUrl));
+                """.formatted(user.getUsername(), verificationUrl);
 
-        javaMailSender.send(mailMessage);
+        verificationEmailSender.send(user.getEmail(), "Conferma il tuo account", text);
 
     }
 
@@ -109,3 +103,4 @@ public class EmailService {
 
 
 }
+
