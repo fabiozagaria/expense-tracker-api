@@ -52,3 +52,11 @@ Controllo server di username/email duplicati prima di salvare User e inviare ema
 ## Brevo HTTPS — 2026-10-25
 
 Trasporto email separato tramite VerificationEmailSender: SMTP/Mailpit predefinito, Brevo selezionato con MAIL_PROVIDER=brevo. MAIL_FROM e BREVO_API_KEY sono configurazione esterna. Il profilo demo consente REGISTRATION_ENABLED mantenendo false come default. Errori Brevo: 503 EMAIL_DELIVERY_FAILED e rollback della registrazione. Aggiunti test HTTP simulati; in questo ambiente non eseguiti perché Maven Central non è raggiungibile e il JDK disponibile è 17 anziché 21. Invio reale e deploy non verificati.
+
+## Verifica deploy registrazione — 2026-10-25
+
+Backend Render live: deploy `dep-dbf1v8ek1f9s73fptho0`, commit `76fec7db0f4f86fb9764ca087836e12df7c094c7`. Il servizio segue ancora `demo/render-aiven-setup`, avanzato senza force dal vecchio commit alla versione integrata in master. Profilo demo conservato; MAIL_PROVIDER=brevo e REGISTRATION_ENABLED=true configurati su Render preservando i segreti esistenti.
+
+Verifiche completate: 3 test Brevo con Java 21 passati; 56 test Angular passati e build production riuscita con gli avvisi sui budget già presenti. Browser pubblico /register: pulsante Registrati abilitato. API pubblica: health 200, username portfolio-demo già esistente respinto con 409 USERNAME_ALREADY_EXISTS (anche tramite proxy Vercel), token verifica inesistente 400, accesso anonimo alle spese 401, login demo 200 e lettura spese autenticata 200. La prova del duplicato non crea utenti e non invia email.
+
+Resta da verificare con un indirizzo reale: registrazione nuova, accettazione/consegna Brevo, ricezione del link, conferma e login del nuovo account. Nessuna email reale inviata durante questi controlli. Le precedenti note su test non eseguibili sono superate per i test mirati citati; non è stata rieseguita l'intera suite backend con MySQL.
