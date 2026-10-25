@@ -1,5 +1,9 @@
 package org.esercizi.expensetrackerapi.controllers;
 
+import org.esercizi.expensetrackerapi.dto.MovementPage;
+import org.esercizi.expensetrackerapi.dto.income.IncomeUpdateRequest;
+import org.esercizi.expensetrackerapi.dto.income.IncomePatchRequest;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,17 @@ public class IncomeController {
     private final IncomeService incomeService;
     private final UserService userService;
 
+    @GetMapping("/search")
+    public MovementPage<IncomeResponse> search(
+            @RequestParam(defaultValue = "") String month,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "newest") String order,
+            Authentication authentication) {
+        return incomeService.search(authentication.getName(), month, query, page, size, order);
+    }
+
     @GetMapping
     public List<IncomeResponse> getAll(Authentication authentication) {
         return incomeService.findAllOwner(authentication.getName())
@@ -40,7 +55,30 @@ public class IncomeController {
         User user = userService.findByUsername(authentication.getName());
         Income income = incomeService.createIncome(request, user);
         return ResponseEntity
-                .created(URI.create(httpServletRequest.getRequestURI()))
+                .created(URI.create(httpServletRequest.getRequestURI() + "/" + income.getId()))
                 .body(incomeService.toIncomeResponse(income));
+    }
+    @GetMapping("/{id}")
+    public IncomeResponse getById(@PathVariable long id, Authentication authentication) {
+        return incomeService.toIncomeResponse(incomeService.findByIdOwner(id, authentication.getName()));
+    }
+
+    @PutMapping("/{id}")
+    public IncomeResponse put(@PathVariable long id,
+            @Valid @RequestBody IncomeUpdateRequest request,
+            Authentication authentication) {
+        return incomeService.toIncomeResponse(incomeService.putIncomeById(id, request, authentication.getName()));
+    }
+
+    @PatchMapping("/{id}")
+    public IncomeResponse patch(@PathVariable long id,
+            @Valid @RequestBody IncomePatchRequest request,
+            Authentication authentication) {
+        return incomeService.toIncomeResponse(incomeService.patchIncomeById(id, request, authentication.getName()));
+    }
+
+    @DeleteMapping("/{id}")
+    public IncomeResponse delete(@PathVariable long id, Authentication authentication) {
+        return incomeService.toIncomeResponse(incomeService.deleteById(id, authentication.getName()));
     }
 }

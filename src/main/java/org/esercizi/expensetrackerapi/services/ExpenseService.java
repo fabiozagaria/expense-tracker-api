@@ -1,5 +1,7 @@
 package org.esercizi.expensetrackerapi.services;
 
+import org.esercizi.expensetrackerapi.dto.MovementPage;
+
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.esercizi.expensetrackerapi.dto.expense.ExpenseCreateRequest;
@@ -23,6 +25,12 @@ public class ExpenseService {
     private final EntityManager entityManager;
 
 
+
+    @Transactional(readOnly = true)
+    public MovementPage<ExpenseResponse> search(String username, String month, String query, int page, int size, String order) {
+        var result = expenseRepository.findAll(MovementSearch.<Expense>owned(username, month, query), MovementSearch.page(page, size, order));
+        return MovementPage.from(result.map(this::toExpenseResponse));
+    }
 
     public List<Expense> findAllOwner(String username) {
         return expenseRepository.findAllByOwnerUsername(username);

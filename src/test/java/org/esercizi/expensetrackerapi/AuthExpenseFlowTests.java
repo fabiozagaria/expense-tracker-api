@@ -34,6 +34,41 @@ class AuthExpenseFlowTests {
     @Autowired PasswordEncoder passwordEncoder;
 
     @Test
+    void incomeCrudSearchAndOwnership() throws Exception {
+        registerAndVerify("incomeowner1", "income1@example.test", 1);
+        registerAndVerify("incomeowner2", "income2@example.test", 2);
+        String first = JsonPath.read(mvc.perform(post("/auth/login").contentType("application/json")
+                .content("{\"username\":\"incomeowner1\",\"password\":\"secret123\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), "$.accessToken");
+        String second = JsonPath.read(mvc.perform(post("/auth/login").contentType("application/json")
+                .content("{\"username\":\"incomeowner2\",\"password\":\"secret123\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), "$.accessToken");
+        String payload = "{\"title\":\"Stipendio\",\"amount\":25.50,\"description\":\"Nota\",\"category\":\"salary\",\"date\":\"2026-01-01\"}";
+        Integer id = JsonPath.read(mvc.perform(post("/api/incomes").header("Authorization", "Bearer " + first)
+                .contentType("application/json").content(payload)).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        mvc.perform(get("/api/incomes/{id}", id).header("Authorization", "Bearer " + second)).andExpect(status().isNotFound());
+        mvc.perform(put("/api/incomes/{id}", id).header("Authorization", "Bearer " + second).contentType("application/json").content(payload)).andExpect(status().isNotFound());
+        mvc.perform(patch("/api/incomes/{id}", id).header("Authorization", "Bearer " + second).contentType("application/json").content("{\"title\":\"Alterato\"}")).andExpect(status().isNotFound());
+        mvc.perform(delete("/api/incomes/{id}", id).header("Authorization", "Bearer " + second)).andExpect(status().isNotFound());
+        for (String query : new String[]{"Stipendio", "Nota", "25,50", "2026-01-01", "01/01/2026"}) {
+            mvc.perform(get("/api/incomes/search").param("month", "2026-01").param("query", query)
+                    .header("Authorization", "Bearer " + first)).andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(1));
+        }
+        mvc.perform(get("/api/incomes/search").header("Authorization", "Bearer " + second))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(0));
+        mvc.perform(get("/api/incomes/search").param("month", "2026-02").header("Authorization", "Bearer " + first))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.totalElements").value(0));
+        mvc.perform(get("/api/expenses/search").param("size", "101").header("Authorization", "Bearer " + first)).andExpect(status().isBadRequest());
+        mvc.perform(put("/api/incomes/{id}", id).header("Authorization", "Bearer " + first).contentType("application/json").content(payload.replace("25.50", "30.00")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.amount").value(30));
+        mvc.perform(patch("/api/incomes/{id}", id).header("Authorization", "Bearer " + first).contentType("application/json").content("{\"description\":\"\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.description").value(""));
+        mvc.perform(delete("/api/incomes/{id}", id).header("Authorization", "Bearer " + first)).andExpect(status().isOk());
+        mvc.perform(get("/api/incomes/{id}", id).header("Authorization", "Bearer " + first)).andExpect(status().isNotFound());
+    }
+
+    @Test
     void corsAllowsCredentialedFrontendAndExpensesRequireBearer() throws Exception {
         mvc.perform(options("/auth/refresh")
                         .header("Origin", "http://localhost:4200")

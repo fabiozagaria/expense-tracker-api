@@ -1,5 +1,7 @@
 package org.esercizi.expensetrackerapi.controllers;
 
+import org.esercizi.expensetrackerapi.dto.MovementPage;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,17 @@ public class ExpenseController {
     private final ExpenseService expenseService;
     private final UserService userService;
 
+
+    @GetMapping("/search")
+    public MovementPage<ExpenseResponse> search(
+            @RequestParam(defaultValue = "") String month,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "newest") String order,
+            Authentication authentication) {
+        return expenseService.search(authentication.getName(), month, query, page, size, order);
+    }
 
     @GetMapping
     public List<ExpenseResponse> getAllExpensesOwner(

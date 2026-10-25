@@ -10,6 +10,21 @@ Backend Spring Boot del progetto full stack **Gestionale Spese**. La versione co
 - [Repository frontend](https://github.com/fabiozagaria/expense-tracker-angular)
 - [Demo full stack](https://gestionale-spese.vercel.app/)
 
+## Completamento entrate e liste — PR in verifica (25 ottobre 2026)
+
+La modifica proposta completa il CRUD entrate (`GET /api/incomes/{id}`, `PUT`, `PATCH`, `DELETE`) con controllo del proprietario e risposta 404 per risorse assenti o altrui.
+
+Le nuove liste Angular di spese ed entrate usano `GET /api/expenses/search` e `GET /api/incomes/search`:
+
+- `page` da 0, `size` da 1 a 100 (default 10);
+- `month=yyyy-MM`, `order=newest|oldest` (data e ID, default più recenti);
+- `query`: titolo/descrizione senza distinzione maiuscole, importo esatto con punto o virgola, data esatta ISO o `gg/mm/aaaa`;
+- risposta stabile: `content`, `number`, `size`, `totalElements`, `totalPages`.
+
+I precedenti GET che restituiscono array restano compatibili per dashboard e grafici. Il frontend offre modifica di tutti i campi e conferma di eliminazione. Footer con firma **fabiozagariadev**, portfolio e GitHub.
+
+Verifiche locali: build Angular riuscita (avvisi budget già presenti), 62 test Angular e 6 test backend mirati passati con Java 21. Il nuovo test di integrazione `incomeCrudSearchAndOwnership` richiede MySQL dedicato: non eseguito in questo ambiente. Verifica browser responsive e deploy ancora aperti. Le sezioni seguenti descrivono la versione pubblicata precedente alla PR.
+
 ## Stato del progetto
 
 **Demo pubblica su Render con MySQL Aiven/TLS; CRUD spese e autenticazione coperti da test di integrazione. Restano da ampliare i test di entrate, dashboard e casi limite.**
