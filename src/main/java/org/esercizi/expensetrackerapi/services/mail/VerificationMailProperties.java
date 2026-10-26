@@ -1,4 +1,4 @@
-package org.esercizi.expensetrackerapi.email;
+package org.esercizi.expensetrackerapi.services.mail;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
@@ -13,17 +13,17 @@ import org.springframework.validation.annotation.Validated;
 @Getter
 @Setter
 @Validated
-@ConfigurationProperties("app.email")
-public class EmailProperties {
+@ConfigurationProperties("app.mail")
+public class VerificationMailProperties {
     public enum Provider { SMTP, BREVO, DISABLED }
 
     @NotNull
     private Provider provider = Provider.SMTP;
-    @Email
-    private String from = "";
+    @NotBlank @Email
+    private String from = "noreply@expense-tracker.local";
     @NotBlank
-    private String fromName = "Expense Tracker";
-    // No toString(): the API key must never appear in diagnostic output.
+    private String fromName = "Gestionale Spese";
+    // No toString(): never expose this key in diagnostics.
     private String brevoApiKey = "";
     @Min(100) @Max(30000)
     private int connectTimeoutMs = 5000;

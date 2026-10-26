@@ -1,4 +1,4 @@
-package org.esercizi.expensetrackerapi.email;
+package org.esercizi.expensetrackerapi.services.mail;
 
 import org.esercizi.expensetrackerapi.exceptions.EmailDeliveryException;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
-class BrevoVerificationEmailSenderTests {
+class BrevoVerificationEmailSenderFailureTests {
     MockRestServiceServer server;
     BrevoVerificationEmailSender sender;
 
@@ -25,11 +25,11 @@ class BrevoVerificationEmailSenderTests {
     void setUp() {
         var builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
-        var properties = new EmailProperties();
+        var properties = new VerificationMailProperties();
         properties.setFrom("sender@example.test");
         properties.setFromName("Expense Tracker");
         properties.setBrevoApiKey("synthetic-test-key");
-        sender = new BrevoVerificationEmailSender(builder.build(), properties);
+        sender = new BrevoVerificationEmailSender(builder, properties.getBrevoApiKey(), properties.getFrom(), properties.getFromName());
     }
 
     @Test
@@ -69,6 +69,24 @@ class BrevoVerificationEmailSenderTests {
         server.verify();
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {200, 202, 204})
+    void rejectsUnexpectedSuccessStatus(int status) {
+        server.expect(requestTo(BrevoVerificationEmailSender.ENDPOINT))
+                .andRespond(withStatus(HttpStatus.valueOf(status)).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"messageId\":\"provider-test-id\"}"));
+        assertSafeFailure();
+        server.verify();
+    }
+
+    @Test
+    void rejectsCreatedWithoutAcknowledgementBody() {
+        server.expect(requestTo(BrevoVerificationEmailSender.ENDPOINT))
+                .andRespond(withStatus(HttpStatus.CREATED));
+        assertSafeFailure();
+        server.verify();
+    }
+
     @Test
     void networkFailureIsNotRetried() {
         server.expect(requestTo(BrevoVerificationEmailSender.ENDPOINT))
@@ -91,7 +109,7 @@ class BrevoVerificationEmailSenderTests {
 
     private void assertSafeFailure() {
         assertThatThrownBy(this::send).isInstanceOf(EmailDeliveryException.class)
-                .hasMessageContaining("Registrazione non completata")
+                .hasMessage("Invio email non riuscito. Riprova più tardi.")
                 .hasMessageNotContaining("synthetic-test-key")
                 .hasMessageNotContaining("recipient@example.test")
                 .hasMessageNotContaining("verification-link")

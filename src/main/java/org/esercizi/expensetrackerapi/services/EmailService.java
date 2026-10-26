@@ -6,10 +6,10 @@ import org.esercizi.expensetrackerapi.exceptions.InvalidVerificationTokenExcepti
 import org.esercizi.expensetrackerapi.model.EmailVerificationToken;
 import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.EmailVerificationTokenRepository;
-import org.esercizi.expensetrackerapi.email.VerificationEmailSender;
-import org.springframework.web.util.HtmlUtils;
+import org.esercizi.expensetrackerapi.services.mail.VerificationEmailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -81,12 +81,13 @@ public class EmailService {
         String verificationUrl = frontendUrl.replaceAll("/+$", "") + "/verify-email?token=" + rawToken;
         String text = """
                 Ciao %s,
-
-                verifica il tuo account tramite questo link, valido per 10 minuti.
+                
+                clicca sul link per verificare il tuo account, valido per 10 minuti:
                 Se non hai richiesto la registrazione, ignora questa email.
-
+                
                 %s
                 """.formatted(user.getUsername(), verificationUrl);
+
         String html = """
                 <!doctype html><html lang="it"><body>
                 <h1>Conferma il tuo account</h1><p>Ciao %s,</p>
@@ -96,6 +97,7 @@ public class EmailService {
                 </body></html>
                 """.formatted(HtmlUtils.htmlEscape(user.getUsername()), HtmlUtils.htmlEscape(verificationUrl));
         verificationEmailSender.send(user.getEmail(), "Conferma il tuo account", text, html);
+
     }
 
     private String hashTokenEmail(String rawToken) throws NoSuchAlgorithmException {
@@ -111,3 +113,4 @@ public class EmailService {
 
 
 }
+

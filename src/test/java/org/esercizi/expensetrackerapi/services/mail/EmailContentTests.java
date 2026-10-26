@@ -1,4 +1,4 @@
-package org.esercizi.expensetrackerapi.email;
+package org.esercizi.expensetrackerapi.services.mail;
 
 import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.EmailVerificationTokenRepository;

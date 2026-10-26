@@ -1,13 +1,27 @@
 # Demo portfolio: Render + Aiven + Vercel
 
-Preparazione del codice; pubblicazione e verifica nel browser ancora da completare.
+## Stato corrente — 25 ottobre 2026
+
+**Progetto concluso, versione 1.0.0**, salvo correzioni di bug, refactoring e funzionalità future. Questa sezione e il README descrivono lo stato attuale; le note successive conservano la cronologia e possono descrivere stati superati.
+
+- Frontend Vercel e backend Render con MySQL Aiven/TLS; registrazione online e Brevo HTTPS attivi. Registrazione reale e caricamento liste confermati dal proprietario.
+- CRUD completo spese/entrate e liste /api/{expenses,incomes}/search con paginazione, mese/anno, ordine data/ID e ricerca titolo/descrizione/importo/data.
+- Render esistente segue demo/render-aiven-setup, allineato al merge funzionale di master; render.yaml indica master. Aggiornare master non certifica da solo il deploy di quel servizio.
+- Suite backend completa: 14 test passati con Java 21.0.13 e MySQL 8.0.46 temporaneo, zero fallimenti/errori/skipped. Nessun dato online utilizzato.
+- Frontend: 62 test e build production riusciti; avvisi sui budget iniziale e CSS login/dashboard. Correzione link entrate dalla dashboard pubblicata su Vercel.
+- Restano il controllo visivo sistematico desktop/mobile e temi, il percorso integrale nel browser locale con Mailpit e la verifica completa del Compose originale senza i precedenti problemi del proxy TLS.
+- Versioni dei manifest allineate a 1.0.0. Nessun tag Git o GitHub Release creato da questo aggiornamento.
+
+## Cronologia e dettagli tecnici
+
+Demo pubblicata; le verifiche storiche sono riportate sotto con la relativa data e non attestano la disponibilità attuale. Per lo sviluppo locale seguire i due percorsi nel [README](../README.md#avvio-da-un-clone-pulito).
 
 ## Backend
 
 1. Creare un database Aiven MySQL sul piano Free, verificando disponibilità e limiti nell'account. Usare un database dedicato alla demo, senza dati personali.
 2. Configurare il certificato CA pubblico fornito da Aiven nella variabile Render `AIVEN_CA_CERT`, oppure come secret file `aiven-ca.pem` (montato in `/etc/secrets/aiven-ca.pem`). L'entrypoint crea un truststore temporaneo; Connector/J verifica CA e hostname con `VERIFY_IDENTITY`.
 3. Il Blueprint `render.yaml` usa soltanto un web service Docker Free. Impostare `DB_URL` nel formato `jdbc:mysql://HOST:PORT/defaultdb` (senza parametri che disabilitano TLS), `DB_USERNAME` e `DB_PASSWORD`. Render genera `SECRET_KEY` e `DEMO_PASSWORD`. Non copiare i segreti nel repository.
-4. Il profilo `demo` disabilita la registrazione e crea un account USER verificato e dati fittizi solo alla prima inizializzazione. Ai riavvii aggiorna la password demo ma conserva i dati. Non usare questo profilo su un database personale o di produzione.
+4. Il profilo `demo` disabilita per default la registrazione e crea un account USER verificato e dati fittizi solo alla prima inizializzazione. Ai riavvii aggiorna la password demo ma conserva i dati. Non usare questo profilo su un database personale o di produzione.
 5. `GET /health` indica che il processo HTTP è avviato; non certifica la disponibilità del database. Controllare anche un login demo e una lettura dati.
 
 ## Frontend
@@ -22,9 +36,25 @@ La demo usa un account condiviso: visitatori diversi possono cambiare gli stessi
 
 ## Email
 
-Il backend supporta Brevo tramite API HTTPS e SMTP/Mailpit in locale. Il profilo demo usa per default `MAIL_PROVIDER=disabled` e `REGISTRATION_ENABLED=false`. Configurazione, limiti Free, mittente senza dominio e prova reale sono descritti in [EMAIL.md](EMAIL.md). Nessuna email viene abilitata dal solo deploy.
+In locale resta SMTP/Mailpit (`MAIL_PROVIDER=smtp`, default). Per inviare online tramite Brevo HTTPS configurare nelle variabili d'ambiente Render:
 
-## Verifica prima della pubblicazione
+| Variabile | Valore |
+| --- | --- |
+| `MAIL_PROVIDER` | `brevo` |
+| `BREVO_API_KEY` | Chiave API Brevo, non chiave SMTP; segreto solo su Render |
+| `MAIL_FROM` | Indirizzo del mittente verificato in Brevo |
+| `FRONTEND_URL` | `https://gestionale-spese.vercel.app` |
+| `REGISTRATION_ENABLED` | `true` per abilitare l'endpoint dopo la configurazione |
+
+Il frontend deve avere anche il blocco del form online rimosso: il solo flag backend non abilita il pulsante Angular. Il profilo demo resta disabilitato per default. Non cambiare `SPRING_PROFILES_ACTIVE` per abilitare le email.
+
+Brevo usa una POST HTTPS con timeout di connessione di 5 secondi e lettura di 10 secondi. Un errore HTTP/rete produce 503 `EMAIL_DELIVERY_FAILED`, senza esporre la risposta del provider. L'eccezione runtime provoca il rollback della transazione di registrazione: l'utente può riprovare. Non ci sono retry automatici dell'invio. L'accettazione da Brevo non garantisce la consegna: controllare i log transazionali e la posta indesiderata.
+
+Dopo il deploy provare con un indirizzo reale: registrazione, ricezione email, link su `/verify-email`, login e isolamento dati. Provare anche login prima della verifica, token scaduto e username/email duplicati. Non dichiarare la registrazione pubblica verificata prima di questa prova.
+
+Test del trasporto senza database o email reali: `./mvnw -Dtest=BrevoVerificationEmailSenderTests test` con JDK 21. Il test controlla payload/autenticazione, errori del provider e configurazione mancante. Le regressioni esistenti richiedono MySQL di test isolato.
+
+## Checklist per nuovi deploy (non equivale a verifiche completate)
 
 - Test backend con MySQL e test Angular, più build production.
 - Render avviato senza errori, TLS MySQL verificato e nome pubblico corretto nelle rewrites.
@@ -36,12 +66,29 @@ Il backend supporta Brevo tramite API HTTPS e SMTP/Mailpit in locale. Il profilo
 
 ## Verifiche locali eseguite
 
-2026-10-12: 5 test backend passati con MySQL 8.4 temporaneo; 25 test Angular passati e build production riuscita (warning sul budget iniziale già superiore a 500 kB). TLS Aiven e proxy Vercel richiedono la prova con le risorse pubbliche.
+2026-10-12: 5 test backend passati con MySQL 8.4 temporaneo; 25 test Angular passati e build production riuscita (warning sul budget iniziale già superiore a 500 kB). In quella prova locale TLS Aiven e proxy Vercel non erano verificati; vedere la successiva verifica pubblica del 12 ottobre.
 
 ## Servizio Render creato
 
-Servizio `expense-tracker-api-demo`, piano Free, regione Frankfurt, branch `demo/render-aiven-setup`. Certificato e variabili configurati; `DB_PASSWORD` inserita dal proprietario. Deploy Render live e API verificate. Pubblicazione del frontend in corso.
+Servizio `expense-tracker-api-demo`, piano Free, regione Frankfurt, inizialmente dal branch `demo/render-aiven-setup` (il Blueprint attuale indica `master`). Certificato e variabili configurati; `DB_PASSWORD` inserita dal proprietario. Deploy Render e API verificati il 12 ottobre 2026. Il frontend è pubblicato su `https://gestionale-spese.vercel.app`; questa nota non costituisce una nuova verifica browser.
 
 ## Verifica backend pubblico — 2026-10-12
 
 Deploy Render `dep-db6g54ad0e5s73akjl20` live. `/health`, login demo, lettura spese/entrate/dashboard e refresh restituiscono 200; logout restituisce 204 e il refresh dopo logout 401. Cookie HttpOnly, Secure, SameSite=Strict e Path=/auth verificati. Connessione MySQL riuscita con la configurazione VERIFY_IDENTITY e il certificato Aiven. Avvio dell'app circa 143 secondi su Render Free; la UI deve considerare 2–3 minuti.
+
+## Verifica infrastruttura locale — 2026-10-22
+
+L'analisi del commit `9c5a681` ha validato Compose e verificato compilazione, packaging e 7 test Maven con JDK 21 e MySQL temporaneo in RAM. In un container di prova sono riusciti registrazione con ricezione email in Mailpit, verifica email, login, CRUD spese, lettura entrate/dashboard, refresh e logout. Nessun dato persistente è stato usato o alterato.
+
+La build Docker originale è stata tentata ma bloccata al download Maven da un certificato non riconosciuto del proxy remoto. La prova del JAR con configurazione proxy/trust esterna al progetto non certifica la build integrale del Dockerfile originale. Nessuna verifica TLS è stata disabilitata.
+
+Restano da verificare build e avvio integrali del Compose originale in un ambiente HTTPS funzionante e registrazione completa nel browser locale con Angular e Mailpit. Le prove locali non aggiornano le verifiche della demo pubblica del 12 ottobre.
+
+
+## Verifica deploy registrazione — 2026-10-25
+
+Backend Render live: deploy `dep-dbf1v8ek1f9s73fptho0`, commit `76fec7db0f4f86fb9764ca087836e12df7c094c7`. Il servizio segue ancora `demo/render-aiven-setup`, avanzato senza force dal vecchio commit alla versione integrata in master. Profilo demo conservato; MAIL_PROVIDER=brevo e REGISTRATION_ENABLED=true configurati su Render preservando i segreti esistenti.
+
+Verifiche completate: 3 test Brevo con Java 21 passati; 56 test Angular passati e build production riuscita con gli avvisi sui budget già presenti. Browser pubblico /register: pulsante Registrati abilitato. API pubblica: health 200, username portfolio-demo già esistente respinto con 409 USERNAME_ALREADY_EXISTS (anche tramite proxy Vercel), token verifica inesistente 400, accesso anonimo alle spese 401, login demo 200 e lettura spese autenticata 200. La prova del duplicato non crea utenti e non invia email.
+
+Resta da verificare con un indirizzo reale: registrazione nuova, accettazione/consegna Brevo, ricezione del link, conferma e login del nuovo account. Nessuna email reale inviata durante questi controlli. Le precedenti note su test non eseguibili sono superate per i test mirati citati; non è stata rieseguita l'intera suite backend con MySQL.

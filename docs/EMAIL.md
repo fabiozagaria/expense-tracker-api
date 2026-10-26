@@ -1,49 +1,35 @@
-# Email di verifica: Brevo HTTPS
+# Email di verifica: SMTP locale e Brevo HTTPS
 
-## Trasporto e piano gratuito
-
-Il backend invia le email di verifica tramite `POST https://api.brevo.com/v3/smtp/email`, su HTTPS/porta 443. La parola `smtp` nel percorso API non significa che il backend usi il protocollo SMTP: le porte SMTP bloccate da Render Free non sono coinvolte. Non serve un SDK aggiuntivo.
-
-Il piano Brevo Free offre 300 invii al giorno, con branding del provider. Non è un servizio illimitato: oltre la quota, le email transazionali possono essere accodate o non consegnate. I token dell'app scadono dopo 10 minuti, quindi una consegna ritardata può rendere il link inutilizzabile. Il codice verifica l'accettazione della richiesta, non la consegna in inbox.
-
-Non avendo un dominio proprio, è possibile verificare un indirizzo gratuito come mittente con il codice ricevuto per email. Brevo documenta che riscrive questi mittenti con un proprio dominio (per email transazionali, `t-sender-sib.com`). È una misura temporanea del provider: non garantisce la consegna futura e non equivale ad autenticare un dominio proprio. Non si possono configurare i DNS di `vercel.app` o `gmail.com`.
+L'implementazione resta nel package `services.mail`, con una sola interfaccia `VerificationEmailSender` e configurazione `app.mail`. Il deploy esistente continua a usare `MAIL_PROVIDER=brevo`, `MAIL_FROM` e `BREVO_API_KEY`: non occorrono nuove variabili obbligatorie né modifiche alla registrazione online.
 
 ## Configurazione
 
-| Variabile | Locale | Demo Render iniziale | Brevo configurato |
+| Variabile | SMTP locale | Brevo online | Trasporto disabilitato |
 | --- | --- | --- | --- |
-| `MAIL_PROVIDER` | `smtp` | `disabled` | `brevo` |
-| `REGISTRATION_ENABLED` | `true` | `false` | `true`, solo dopo la verifica |
-| `EMAIL_FROM` | facoltativo; fallback Mailpit | vuoto | indirizzo esattamente verificato in Brevo |
-| `EMAIL_FROM_NAME` | `Expense Tracker` | `Expense Tracker` | `Expense Tracker` |
-| `BREVO_API_KEY` | non serve | vuoto | chiave segreta API v3 |
-| `FRONTEND_URL` | `http://localhost:4200` | `https://gestionale-spese.vercel.app` | stesso URL pubblico |
+| `MAIL_PROVIDER` | `smtp` (default base) | `brevo` | `disabled` (default del profilo demo) |
+| `MAIL_FROM` | `noreply@expense-tracker.local` (default) | indirizzo verificato nel proprio account Brevo | default locale sufficiente |
+| `MAIL_FROM_NAME` | `Gestionale Spese` | `Gestionale Spese`, modificabile | non usato |
+| `BREVO_API_KEY` | non richiesta | chiave API v3 riservata | non richiesta |
+| `REGISTRATION_ENABLED` | `true` (default base) | `true`, già configurato nel deploy esistente | deve essere `false` |
 
-Il profilo `demo` mantiene le protezioni dei cookie e dell'origine anche quando viene abilitata la registrazione. L'accesso «Prova la demo» continua a funzionare. Brevo richiede mittente e chiave configurati per avviare l'app; `disabled` con registrazione abilitata viene rifiutato all'avvio. Non esiste un fallback SMTP automatico quando Brevo fallisce.
+Il profilo demo conserva `REGISTRATION_ENABLED=false` come default, ma le variabili esplicite del deploy hanno precedenza e mantengono attiva la registrazione. Non viene modificata la configurazione del servizio pubblico.
 
-## Passaggi che richiedono il proprietario
+Provider sconosciuto, indirizzo mittente non valido o timeout fuori dall'intervallo 100–30000 ms fanno fallire l'avvio. Brevo richiede una chiave non vuota e rifiuta il mittente locale `.local`; la configurazione non può provare che un indirizzo sia stato realmente verificato nel pannello del provider. `disabled` con registrazione abilitata viene rifiutato all'avvio. Non esiste un fallback SMTP automatico se Brevo fallisce.
 
-1. Creare/accedere a un account **Free** su <https://www.brevo.com>; completare le eventuali verifiche richieste dal provider per abilitare le email transazionali.
-2. In <https://app.brevo.com/senders>, aggiungere il nome `Expense Tracker` e il proprio indirizzo. Confermare il codice ricevuto nella casella.
-3. Nella sezione **SMTP & API → API keys**, generare una chiave API v3 dedicata. Non usare la chiave SMTP. Non copiarla in chat, GitHub, frontend o screenshot.
-4. Inserire la chiave in `BREVO_API_KEY` nel pannello **Environment** del servizio Render <https://dashboard.render.com/web/srv-db6g1rrl550s73akepag>. Inserire anche `EMAIL_FROM`, `EMAIL_FROM_NAME` e `MAIL_PROVIDER=brevo`. Tenere `REGISTRATION_ENABLED=false` durante la preparazione.
-5. Pubblicare questo branch sul servizio scelto, verificando che il branch effettivamente seguito da Render contenga il commit email. Il servizio esistente segue `demo/render-aiven-setup`; aggiornare soltanto `master` non basta.
-6. Concordare una casella per il test reale, aprire temporaneamente la registrazione con `REGISTRATION_ENABLED=true` e verificare: registrazione → email ricevuta (anche Spam) → link entro 10 minuti → login. Chi esegue la prova deve sapere che saranno salvati username e indirizzo.
-7. Solo dopo la prova, abilitare il form Angular con `registrationEnabled=true` nell'environment production, mantenendo `demo=true` per conservare il pulsante demo. Prima della prova, la produzione conserva `registrationEnabled=false`.
+Con Maven le variabili vanno esportate nella shell o impostate nell'IDE: `.env` non è caricato automaticamente. Il file `.env.example` è un riferimento; il Compose locale configura SMTP/Mailpit come descritto nel README.
 
-La chiave API e i codici di conferma richiedono l'accesso del proprietario all'account: l'assistente non può crearli senza quell'accesso. Il branch da solo non abilita email o registrazione sulla demo online.
+## Richiesta e risultato
 
-## Errori e transazioni
+Brevo riceve un solo `POST https://api.brevo.com/v3/smtp/email`, tramite HTTPS/443. La parola `smtp` nel percorso non indica uso delle porte SMTP. Il payload contiene mittente configurato, destinatario, oggetto, testo e HTML. Username e URL sono escapati nel contenuto HTML; il link contiene un token casuale valido 10 minuti, memorizzato sul database solo come hash SHA-256. SMTP/Mailpit mantiene l'invio del contenuto testuale.
 
-La registrazione controlla username/email duplicati e forza il flush dei vincoli MySQL prima di chiamare il provider. Su rifiuto HTTP, timeout o risposta priva di `messageId`, restituisce HTTP 503 con `errorName=EMAIL_DELIVERY_UNAVAILABLE`; la transazione annulla utente e token. Non vengono restituiti corpo provider, API key o link segreto.
+L'accettazione richiede HTTP `201` e un `messageId` non vuoto. Errori HTTP, rete, timeout, risposta non leggibile o conferma mancante producono HTTP `503` con il codice pubblico esistente `EMAIL_DELIVERY_FAILED`. Corpi del provider, chiavi e link di verifica non sono restituiti al client né associati alla causa dell'eccezione applicativa.
 
-L'API invia una sola richiesta, con timeout di connessione 5 secondi e lettura 10 secondi. Non segue redirect e non ripete automaticamente POST. Un timeout è ambiguo: Brevo potrebbe aver accettato l'email. In quel caso la transazione annullata rende quel link inutilizzabile; un nuovo tentativo manuale può produrre un'altra email. L'invio e il commit MySQL non sono atomici: anche un errore del commit dopo l'accettazione può lasciare un link inutilizzabile.
+La richiesta HTTPS ha timeout di connessione di 5 secondi e lettura di 10 secondi, configurabili tramite `app.mail.connect-timeout-ms` e `app.mail.read-timeout-ms`. Non segue redirect e il codice non ripete automaticamente la POST. SMTP ha timeout di connessione di 5 secondi e lettura/scrittura di 10 secondi.
 
-SMTP resta solo per Mailpit/sviluppo locale, con timeout e lo stesso errore applicativo. Il token casuale rimane memorizzato esclusivamente come hash SHA-256, con validità di 10 minuti. Non sono introdotti webhook di consegna, outbox, reinvio di link scaduti o sistemi completi contro l'abuso: se le quote impediscono la prova, richiudere la registrazione e lasciare disponibile l'accesso demo.
+Il `messageId` dimostra solo l'accettazione della richiesta, non la consegna in inbox. Quote, verifiche mittente, spam e ritardi dipendono dal provider; un link consegnato dopo la scadenza non è utilizzabile. Non sono introdotti webhook, outbox o reinvio automatico dei link.
 
-## Fonti ufficiali verificate il 12 ottobre 2026
+## Transazioni e verifiche
 
-- [Limiti Brevo Free](https://help.brevo.com/hc/en-us/articles/208580669)
-- [Creazione e verifica del mittente](https://help.brevo.com/hc/en-us/articles/208836149)
-- [Riscrittura degli indirizzi gratuiti e requisiti dei mittenti](https://help.brevo.com/hc/en-us/articles/14925263522578)
-- [API email transazionale](https://developers.brevo.com/reference/send-transac-email)
+Prima dell'invio, la registrazione forza il flush dei vincoli MySQL. Un fallimento del trasporto annulla utente e token; un nuovo tentativo manuale può quindi riutilizzare lo stesso username. Invio e commit non sono atomici: un timeout può nascondere un invio già accettato, oppure il commit successivo può fallire, lasciando un link inutilizzabile. Non viene promesso un comportamento exactly-once.
+
+I test del trasporto usano risposte HTTP simulate e un mittente sintetico. I test di registrazione usano MySQL isolato e `JavaMailSender` simulato, senza inviare email reali. Oltre a errori e rollback, verificano che la configurazione Brevo possa avviarsi senza SMTP e che quella disabilitata non annunci una registrazione funzionante.
