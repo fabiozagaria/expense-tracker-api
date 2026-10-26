@@ -9,6 +9,7 @@ import org.esercizi.expensetrackerapi.repository.EmailVerificationTokenRepositor
 import org.esercizi.expensetrackerapi.services.mail.VerificationEmailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -77,16 +78,25 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(User user, String rawToken) {
-        String verificationUrl = frontendUrl + "/verify-email?token=" + rawToken;
+        String verificationUrl = frontendUrl.replaceAll("/+$", "") + "/verify-email?token=" + rawToken;
         String text = """
                 Ciao %s,
                 
-                clicca sul link per verificare il tuo account:
+                clicca sul link per verificare il tuo account, valido per 10 minuti:
+                Se non hai richiesto la registrazione, ignora questa email.
                 
                 %s
                 """.formatted(user.getUsername(), verificationUrl);
 
-        verificationEmailSender.send(user.getEmail(), "Conferma il tuo account", text);
+        String html = """
+                <!doctype html><html lang="it"><body>
+                <h1>Conferma il tuo account</h1><p>Ciao %s,</p>
+                <p>Il link è valido per 10 minuti.</p>
+                <p><a href="%s">Verifica il tuo account</a></p>
+                <p>Se non hai richiesto la registrazione, ignora questa email.</p>
+                </body></html>
+                """.formatted(HtmlUtils.htmlEscape(user.getUsername()), HtmlUtils.htmlEscape(verificationUrl));
+        verificationEmailSender.send(user.getEmail(), "Conferma il tuo account", text, html);
 
     }
 

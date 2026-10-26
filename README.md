@@ -96,6 +96,8 @@ JWT di accesso: 15 minuti. Refresh: 7 giorni, cookie HttpOnly con Path `/auth`. 
 
 Duplicati username/email: 409. Fallimento dell'invio email: 503 `EMAIL_DELIVERY_FAILED` e rollback della registrazione. La verifica email è necessaria prima del login.
 
+Brevo riceve testo e HTML con link valido per 10 minuti; il backend richiede una risposta `201` con `messageId` prima di accettare l'invio. Questa conferma non dimostra la consegna in inbox. Configurazione, timeout, assenza di retry automatici e limiti transazionali sono descritti in [EMAIL.md](docs/EMAIL.md). Il contratto pubblico, le variabili `MAIL_FROM`/`MAIL_PROVIDER` e la registrazione online restano compatibili con la versione 1.0.0.
+
 ## Deploy attuale
 
 | Componente | Configurazione |

@@ -84,3 +84,9 @@ Verifiche: build frontend e 62 test Angular passati; 6 test backend mirati passa
 ## Verifica MySQL completata — 2026-10-25
 
 Supera la precedente nota sulla suite database non eseguita. Suite Maven completa: 14 test, zero fallimenti/errori/skipped, Java 21.0.13 e MySQL Community 8.0.46 locale temporaneo. Database dedicato `expense_tracker_verification`, connessione su loopback, processo arrestato a fine prova; nessun dato online usato. Incluso `incomeCrudSearchAndOwnership`: GET/PUT/PATCH/DELETE altrui respinti con 404, CRUD proprietario, mese, titolo/descrizione, importo con virgola e date ISO/italiane. Test esistenti auth/spese/demo e 3 test Brevo inclusi. Frontend: build e 62 test passati; link entrate dalla dashboard corretto nel commit b12238f0f2ec953d8a2f31280a8601dc266493c6, stato Vercel success. Il proprietario ha confermato il caricamento delle liste. Resta il controllo browser completo desktop/mobile e temi.
+
+## Integrazione compatibile della manutenzione email — 2026-10-26
+
+Recuperati gli incrementi utili della precedente PR email nella sola architettura `services.mail`/`app.mail`, mantenendo `MAIL_FROM`, `EMAIL_DELIVERY_FAILED`, versione 1.0.0 e configurazione della registrazione online. Aggiunti HTML escapato, conferma Brevo `201` con `messageId`, timeout, rifiuto di redirect/configurazioni incoerenti e flush dei vincoli prima dell'invio. Dettagli e limite tra invio e commit in [EMAIL.md](EMAIL.md).
+
+`clean verify` completato con JDK 21.0.13 e MySQL 8.4 temporaneo su loopback: 39 test, zero fallimenti/errori/skipped e JAR 1.0.0 prodotto. Inclusi i flussi auth/spese/entrate/demo esistenti, conferme HTTP simulate, escaping, configurazione e rollback reale di utente/token con successivo tentativo riuscito. Nessuna chiamata Brevo, email reale, modifica al servizio pubblico o dato online. Il database di prova è effimero e separato; queste prove non sostituiscono il controllo browser o la consegna reale già documentata.

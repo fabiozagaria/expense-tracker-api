@@ -54,6 +54,8 @@ public class AuthService {
         entityManager.persist(user);
 
         String verificationToken = emailService.createVerificationToken(user);
+        // Check database constraints before the irreversible external email request.
+        entityManager.flush();
         emailService.sendVerificationEmail(user, verificationToken);
 
         return new RegistrationResponse("Account creato! Verifica Email");
