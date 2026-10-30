@@ -104,9 +104,10 @@ class AuthExpenseFlowTests {
                 .andExpect(status().isCreated()).andReturn();
         Integer expenseId = JsonPath.read(created.getResponse().getContentAsString(), "$.id");
 
-        mvc.perform(get("/api/expenses").header("Authorization", "Bearer " + access))
+        mvc.perform(get("/api/expenses/search").header("Authorization", "Bearer " + access))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(expenseId));
+                .andExpect(jsonPath("$.content[0].id").value(expenseId))
+                .andExpect(jsonPath("$.totalElements").value(1));
 
         MvcResult refreshed = mvc.perform(post("/auth/refresh").cookie(refreshCookie))
                 .andExpect(status().isOk()).andReturn();
@@ -123,9 +124,10 @@ class AuthExpenseFlowTests {
                                 """))
                 .andExpect(status().isOk()).andReturn();
         String secondAccess = JsonPath.read(secondLogin.getResponse().getContentAsString(), "$.accessToken");
-        mvc.perform(get("/api/expenses").header("Authorization", "Bearer " + secondAccess))
+        mvc.perform(get("/api/expenses/search").header("Authorization", "Bearer " + secondAccess))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$.content").isEmpty())
+                .andExpect(jsonPath("$.totalElements").value(0));
         mvc.perform(get("/api/expenses/{id}", expenseId)
                         .header("Authorization", "Bearer " + secondAccess))
                 .andExpect(status().isNotFound());

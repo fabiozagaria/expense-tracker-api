@@ -1,13 +1,13 @@
 # Gestionale Spese — Backend API
 
-![Versione](https://img.shields.io/badge/versione-1.0.0-blue)
+![Versione](https://img.shields.io/badge/versione-1.0.1-blue)
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
 ![Stato](https://img.shields.io/badge/perimetro_funzionale-completato-success)
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
-**Progetto concluso al 25 ottobre 2026 — versione 1.0.0.**
+**Versione corrente: 1.0.1 — aggiornamento del 30 ottobre 2026.**
 
 Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e funzionalità future da gestire con nuove versioni. Il progetto resta una demo portfolio, con limiti e verifiche residue dichiarati sotto.
 
@@ -57,8 +57,8 @@ Per entrambi i prefissi `/api/expenses` e `/api/incomes`:
 
 | Metodo | Percorso relativo | Risultato |
 | --- | --- | --- |
-| GET | prefisso base | Array dei movimenti del proprietario; usato anche dalla dashboard |
-| GET | `/search` | Pagina filtrata del proprietario |
+| GET | prefisso base | Array dei movimenti del proprietario; spese servite anche dalla cache Redis |
+| GET | `/search` | Pagina filtrata del proprietario (page, size, mese, query, ordine) |
 | GET | `/{id}` | Dettaglio, oppure 404 |
 | POST | prefisso base | Creazione, 201 con risposta del movimento |
 | PUT | `/{id}` | Sostituzione dei campi modificabili, 200 |
@@ -67,9 +67,15 @@ Per entrambi i prefissi `/api/expenses` e `/api/incomes`:
 
 `GET /api/dashboard/summary` restituisce `totalIncome`, `totalExpense` e `balance`. Gli endpoint `/api/**` richiedono `Authorization: Bearer <access token>`.
 
+### Cache Redis delle spese
+
+`GET /api/expenses` resta disponibile. Le risposte dell'elenco e di `/api/expenses/search` sono memorizzate in Redis per due minuti, separate per proprietario e parametri di ricerca. Le scritture invalidate dopo il commit riguardano solo il proprietario modificato. In caso di errore Redis le letture usano MySQL; un errore di invalidazione viene registrato e i dati in cache scadono entro due minuti. Le letture simultanee a una scrittura possono ancora osservare una risposta precedente fino alla scadenza: la cache non garantisce consistenza forte.
+
+Docker Compose include Redis senza esporne la porta sull'host. Fuori da Compose impostare `REDIS_URL` con l'URL di un Redis privato (oppure `rediss://` con TLS). `EXPENSE_CACHE_ENABLED=false` disattiva la cache. La configurazione del servizio Redis online resta da predisporre prima del deploy; nessuna risorsa remota viene creata da questa modifica.
+
 ### Ricerca e paginazione
 
-Esempio: `GET /api/incomes/search?page=0&size=10&month=2026-10&order=newest&query=stipendio`.
+Esempi: `GET /api/expenses/search?page=0&size=10&month=2026-10&order=newest&query=spesa` e `GET /api/incomes/search?page=0&size=10&month=2026-10&order=newest&query=stipendio`. La dashboard usa la ricerca paginata per le spese e combina i risultati con le entrate; non usa più elenchi completi non paginati delle spese.
 
 | Parametro | Comportamento |
 | --- | --- |

@@ -2,7 +2,7 @@
 
 ## Stato corrente — 25 ottobre 2026
 
-**Progetto concluso, versione 1.0.0**, salvo correzioni di bug, refactoring e funzionalità future. Questa sezione e il README descrivono lo stato attuale; le note successive conservano la cronologia e possono descrivere stati superati.
+**Versione corrente 1.0.1**, salvo correzioni di bug, refactoring e funzionalità future. Questa sezione e il README descrivono lo stato attuale; le note successive conservano la cronologia e possono descrivere stati superati.
 
 - Frontend Vercel e backend Render con MySQL Aiven/TLS; registrazione online e Brevo HTTPS attivi. Registrazione reale e caricamento liste confermati dal proprietario.
 - CRUD completo spese/entrate e liste /api/{expenses,incomes}/search con paginazione, mese/anno, ordine data/ID e ricerca titolo/descrizione/importo/data.
@@ -10,7 +10,7 @@
 - Suite backend completa: 14 test passati con Java 21.0.13 e MySQL 8.0.46 temporaneo, zero fallimenti/errori/skipped. Nessun dato online utilizzato.
 - Frontend: 62 test e build production riusciti; avvisi sui budget iniziale e CSS login/dashboard. Correzione link entrate dalla dashboard pubblicata su Vercel.
 - Restano il controllo visivo sistematico desktop/mobile e temi, il percorso integrale nel browser locale con Mailpit e la verifica completa del Compose originale senza i precedenti problemi del proxy TLS.
-- Versioni dei manifest allineate a 1.0.0. Nessun tag Git o GitHub Release creato da questo aggiornamento.
+- Versioni dei manifest allineate a 1.0.1. Nessun tag Git o GitHub Release creato da questo aggiornamento.
 
 ## Cronologia e dettagli tecnici
 

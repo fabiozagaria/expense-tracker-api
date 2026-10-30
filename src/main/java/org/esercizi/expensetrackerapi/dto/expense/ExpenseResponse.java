@@ -13,5 +13,5 @@ public record ExpenseResponse(
         ExpenseCategory category,
         LocalDate date
 
-) {
+) implements java.io.Serializable {
 }
