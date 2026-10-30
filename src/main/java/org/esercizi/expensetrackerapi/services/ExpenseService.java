@@ -14,8 +14,14 @@ import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.ExpenseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.context.ApplicationEventPublisher;
+import org.esercizi.expensetrackerapi.cache.OwnerExpenseCache;
+import org.esercizi.expensetrackerapi.cache.OwnerExpensesChanged;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+
 
 @Service
 @RequiredArgsConstructor
@@ -23,17 +29,26 @@ public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final EntityManager entityManager;
+    private final OwnerExpenseCache cache;
+    private final ApplicationEventPublisher events;
 
 
 
     @Transactional(readOnly = true)
     public MovementPage<ExpenseResponse> search(String username, String month, String query, int page, int size, String order) {
-        var result = expenseRepository.findAll(MovementSearch.<Expense>owned(username, month, query), MovementSearch.page(page, size, order));
-        return MovementPage.from(result.map(this::toExpenseResponse));
+        var specification = MovementSearch.<Expense>owned(username, month, query);
+        var pageable = MovementSearch.page(page, size, order);
+        String key = "search:" + Base64.getUrlEncoder().encodeToString(month.getBytes(StandardCharsets.UTF_8))
+                + ":" + Base64.getUrlEncoder().encodeToString(query.getBytes(StandardCharsets.UTF_8))
+                + ":" + page + ":" + size + ":" + order;
+        return cache.read(username, key, () -> MovementPage.from(
+                expenseRepository.findAll(specification, pageable).map(this::toExpenseResponse)));
     }
 
-    public List<Expense> findAllOwner(String username) {
-        return expenseRepository.findAllByOwnerUsername(username);
+    @Transactional(readOnly = true)
+    public List<ExpenseResponse> findAllOwner(String username) {
+        return cache.read(username, "all", () -> new ArrayList<>(expenseRepository
+                .findAllByOwnerUsername(username).stream().map(this::toExpenseResponse).toList()));
     }
 
     public Expense findByIdOwner(long id, String username) {
@@ -46,6 +61,7 @@ public class ExpenseService {
         Expense newExpense = toExpense(request, user);
 
         entityManager.persist(newExpense);
+        events.publishEvent(new OwnerExpensesChanged(user.getUsername()));
 
         return newExpense;
 
@@ -62,6 +78,7 @@ public class ExpenseService {
         expenseUpdate.setCategory(request.category());
         expenseUpdate.setDate(request.date());
         expenseUpdate.setDescription(validDescription(request.description(), "description"));
+        events.publishEvent(new OwnerExpensesChanged(username));
         return expenseUpdate;
     }
 
@@ -91,6 +108,7 @@ public class ExpenseService {
             expenseUpdate.setDescription(descriptionValid);
         }
 
+        events.publishEvent(new OwnerExpensesChanged(username));
         return expenseUpdate;
     }
 
@@ -100,6 +118,7 @@ public class ExpenseService {
                 .orElseThrow(() -> new NotFoundExpenseException("Expense not found"));
 
         entityManager.remove(expense);
+        events.publishEvent(new OwnerExpensesChanged(username));
         return expense;
     }
 

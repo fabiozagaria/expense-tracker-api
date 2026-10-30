@@ -41,13 +41,8 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public List<ExpenseResponse> getAllExpensesOwner(
-            Authentication authentication
-    ) {
-        List<Expense> expenseList = expenseService.findAllOwner(authentication.getName());
-        return expenseList.stream()
-                .map(expenseService::toExpenseResponse)
-                .toList();
+    public List<ExpenseResponse> getAllExpensesOwner(Authentication authentication) {
+        return expenseService.findAllOwner(authentication.getName());
     }
 
     @GetMapping("/{id}")

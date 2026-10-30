@@ -1,4 +1,13 @@
 services:
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   mysql:
     image: mysql:8.0
     environment:
@@ -31,7 +40,10 @@ services:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       MAIL_HOST: mailpit
       FRONTEND_URL: http://localhost:4200
+      REDIS_URL: redis://redis:6379
     depends_on:
+      redis:
+        condition: service_healthy
       mysql:
         condition: service_healthy
       mailpit:
