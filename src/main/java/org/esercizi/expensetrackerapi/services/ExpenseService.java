@@ -9,6 +9,7 @@ import org.esercizi.expensetrackerapi.dto.expense.ExpensePatchRequest;
 import org.esercizi.expensetrackerapi.dto.expense.ExpenseResponse;
 import org.esercizi.expensetrackerapi.dto.expense.ExpenseUpdateRequest;
 import org.esercizi.expensetrackerapi.exceptions.NotFoundExpenseException;
+import org.esercizi.expensetrackerapi.mapper.ExpenseMapper;
 import org.esercizi.expensetrackerapi.model.expense.Expense;
 import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.ExpenseRepository;
@@ -28,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
+    private final ExpenseMapper expenseMapper;
     private final EntityManager entityManager;
     private final OwnerExpenseCache cache;
     private final ApplicationEventPublisher events;
@@ -58,7 +60,7 @@ public class ExpenseService {
 
     @Transactional
     public Expense createExpense(ExpenseCreateRequest request, User user) {
-        Expense newExpense = toExpense(request, user);
+        Expense newExpense = expenseMapper.toEntity(request, user);
 
         entityManager.persist(newExpense);
         events.publishEvent(new OwnerExpensesChanged(user.getUsername()));
@@ -73,11 +75,7 @@ public class ExpenseService {
         Expense expenseUpdate = expenseRepository.findByIdAndOwnerUsername(id, username)
                 .orElseThrow(() -> new NotFoundExpenseException("Expense not found"));
 
-        expenseUpdate.setTitle(request.title());
-        expenseUpdate.setAmount(request.amount());
-        expenseUpdate.setCategory(request.category());
-        expenseUpdate.setDate(request.date());
-        expenseUpdate.setDescription(validDescription(request.description(), "description"));
+        expenseMapper.updateFromRequest(request, expenseUpdate);
         events.publishEvent(new OwnerExpensesChanged(username));
         return expenseUpdate;
     }
@@ -87,26 +85,7 @@ public class ExpenseService {
         Expense expenseUpdate = expenseRepository.findByIdAndOwnerUsername(id, username)
                 .orElseThrow(() -> new NotFoundExpenseException("Expense not found"));
 
-        if(request.title() != null) {
-            expenseUpdate.setTitle(request.title().trim());
-        }
-
-        if(request.amount() != null) {
-            expenseUpdate.setAmount(request.amount());
-        }
-
-        if(request.category() != null) {
-            expenseUpdate.setCategory(request.category());
-        }
-
-        if(request.date() != null) {
-            expenseUpdate.setDate(request.date());
-        }
-
-        if (request.description() != null) {
-            String descriptionValid = validDescription(request.description(), "description");
-            expenseUpdate.setDescription(descriptionValid);
-        }
+        expenseMapper.patchFromRequest(request, expenseUpdate);
 
         events.publishEvent(new OwnerExpensesChanged(username));
         return expenseUpdate;
@@ -125,38 +104,6 @@ public class ExpenseService {
 
     //MAPPER
     public ExpenseResponse toExpenseResponse(Expense expense) {
-        return new ExpenseResponse(
-                expense.getId(),
-                expense.getTitle(),
-                expense.getAmount(),
-                expense.getDescription(),
-                expense.getCategory(),
-                expense.getDate()
-
-        );
-    }
-
-    public Expense toExpense(ExpenseCreateRequest request, User user) {
-        return new Expense(
-                null,
-                request.title(),
-                request.amount(),
-                request.description(),
-                request.category(),
-                request.date(),
-                user
-
-        );
-    }
-
-    private String validDescription(String value, String description) {
-            //se null, assente
-            if(value == null) {
-                return null;
-            }
-
-        return value.trim();
-
-
+        return expenseMapper.toResponse(expense);
     }
 }

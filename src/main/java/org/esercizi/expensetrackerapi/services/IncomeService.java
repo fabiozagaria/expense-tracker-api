@@ -4,6 +4,7 @@ import org.esercizi.expensetrackerapi.dto.MovementPage;
 import org.esercizi.expensetrackerapi.dto.income.IncomeUpdateRequest;
 import org.esercizi.expensetrackerapi.dto.income.IncomePatchRequest;
 import org.esercizi.expensetrackerapi.exceptions.NotFoundIncomeException;
+import org.esercizi.expensetrackerapi.mapper.IncomeMapper;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.List;
 public class IncomeService {
     private final IncomeRepository incomeRepository;
     private final EntityManager entityManager;
+    private final IncomeMapper incomeMapper;
 
     @Transactional(readOnly = true)
     public MovementPage<IncomeResponse> search(String username, String month, String query, int page, int size, String order) {
@@ -35,15 +37,7 @@ public class IncomeService {
 
     @Transactional
     public Income createIncome(IncomeCreateRequest request, User user) {
-        Income income = new Income(
-                null,
-                request.title(),
-                request.amount(),
-                request.description() == null ? null : request.description().trim(),
-                request.category(),
-                request.date(),
-                user
-        );
+        Income income = incomeMapper.toEntity(request, user);
         entityManager.persist(income);
         return income;
     }
@@ -56,22 +50,14 @@ public class IncomeService {
     @Transactional
     public Income putIncomeById(long id, IncomeUpdateRequest request, String username) {
         Income income = findByIdOwner(id, username);
-        income.setTitle(request.title().trim());
-        income.setAmount(request.amount());
-        income.setDescription(request.description() == null ? null : request.description().trim());
-        income.setCategory(request.category());
-        income.setDate(request.date());
+        incomeMapper.updateFromRequest(request, income);
         return income;
     }
 
     @Transactional
     public Income patchIncomeById(long id, IncomePatchRequest request, String username) {
         Income income = findByIdOwner(id, username);
-        if (request.title() != null) income.setTitle(request.title().trim());
-        if (request.amount() != null) income.setAmount(request.amount());
-        if (request.description() != null) income.setDescription(request.description().trim());
-        if (request.category() != null) income.setCategory(request.category());
-        if (request.date() != null) income.setDate(request.date());
+        incomeMapper.patchFromRequest(request, income);
         return income;
     }
 
@@ -83,13 +69,6 @@ public class IncomeService {
     }
 
     public IncomeResponse toIncomeResponse(Income income) {
-        return new IncomeResponse(
-                income.getId(),
-                income.getTitle(),
-                income.getAmount(),
-                income.getDescription(),
-                income.getCategory(),
-                income.getDate()
-        );
+        return incomeMapper.toResponse(income);
     }
 }
