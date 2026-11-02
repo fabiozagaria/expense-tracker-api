@@ -52,6 +52,34 @@ class ExpenseServiceTests {
     }
 
     @Test
+    void createTrimsDescription() {
+        var request = new ExpenseCreateRequest("Cena", BigDecimal.ONE, "  nota  ",
+                ExpenseCategory.other, LocalDate.now());
+        assertThat(service.createExpense(request, User.builder().username("owner1").build()).getDescription())
+                .isEqualTo("nota");
+    }
+
+    @Test
+    void searchAndListAreScopedToTheOwnerAndReturnResponses() {
+        var cache = mock(OwnerExpenseCache.class);
+        when(cache.read(anyString(), anyString(), any())).thenAnswer(call ->
+                ((java.util.function.Supplier<?>) call.getArgument(2)).get());
+        var cached = new ExpenseService(repository, new ExpenseMapperImpl(), em, cache, events);
+        Expense expense = existing();
+        when(repository.findAllByOwnerUsername("owner1")).thenReturn(java.util.List.of(expense));
+        when(repository.findAll(any(org.springframework.data.jpa.domain.Specification.class),
+                any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(expense)));
+
+        assertThat(cached.findAllOwner("owner1")).extracting("title").containsExactly("Vecchio");
+        var page = cached.search("owner1", "2026-01", "vecc", 0, 10, "newest");
+        assertThat(page.content()).hasSize(1);
+        assertThat(page.totalElements()).isEqualTo(1);
+        verify(cache).read(eq("owner1"), startsWith("search:"), any());
+        verify(cache).read(eq("owner1"), eq("all"), any());
+    }
+
+    @Test
     void missingOrForeignExpenseIsNotFoundAndNeverTouchesPersistenceOrCache() {
         when(repository.findByIdAndOwnerUsername(7L, "intruder")).thenReturn(Optional.empty());
 

@@ -5,6 +5,7 @@ import org.esercizi.expensetrackerapi.services.*;
 import org.esercizi.expensetrackerapi.repository.IncomeRepository;
 import org.esercizi.expensetrackerapi.model.income.*;
 import org.esercizi.expensetrackerapi.dto.income.*;
+import org.esercizi.expensetrackerapi.mapper.IncomeMapperImpl;
 import org.esercizi.expensetrackerapi.exceptions.NotFoundIncomeException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,7 +15,7 @@ import static org.assertj.core.api.Assertions.*;
 class IncomeServiceTests {
     final IncomeRepository repository = mock(IncomeRepository.class);
     final EntityManager em = mock(EntityManager.class);
-    final IncomeService service = new IncomeService(repository, em, new org.esercizi.expensetrackerapi.mapper.IncomeMapperImpl());
+    final IncomeService service = new IncomeService(repository, em, new IncomeMapperImpl());
     @Test void missingOrForeignIncomeCannotBeReadChangedOrDeleted() {
         when(repository.findByIdAndOwnerUsername(3L, "owner")).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.findByIdOwner(3, "owner")).isInstanceOf(NotFoundIncomeException.class);
@@ -32,6 +33,13 @@ class IncomeServiceTests {
         assertThat(income.getAmount()).isEqualByComparingTo("42.50");
         assertThat(income.getDescription()).isEmpty();
         service.deleteById(3, "owner"); verify(em).remove(income);
+    }
+    @Test void createTrimsDescriptionAndAssignsOwner() {
+        var owner = org.esercizi.expensetrackerapi.model.user.User.builder().username("owner").build();
+        Income created = service.createIncome(new IncomeCreateRequest("Stipendio", BigDecimal.TEN, "  nota  ", IncomeCategory.salary, LocalDate.now()), owner);
+        assertThat(created.getDescription()).isEqualTo("nota");
+        assertThat(created.getOwner()).isSameAs(owner);
+        verify(em).persist(created);
     }
     @Test void paginationIsBoundedAndStable() {
         assertThatThrownBy(() -> MovementSearch.page(-1, 10, "newest")).isInstanceOf(IllegalArgumentException.class);

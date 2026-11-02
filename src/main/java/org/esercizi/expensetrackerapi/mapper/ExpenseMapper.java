@@ -25,6 +25,7 @@ public interface ExpenseMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "owner", source = "user")
+    @Mapping(target = "description", source = "request.description", qualifiedByName = "trim")
     Expense toEntity(ExpenseCreateRequest request, User user);
 
     @Mapping(target = "id", ignore = true)
