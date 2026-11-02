@@ -41,6 +41,8 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private static final int MIN_JWT_SECRET_BYTES = 32;
+
     @Value("${jwt.secret}")
     private String jwtSecret;
     @Value("${app.frontend-url}")
@@ -121,9 +123,19 @@ public class SecurityConfig {
 
     private SecretKey getSecretKey() {
         return new SecretKeySpec(
-                jwtSecret.getBytes(StandardCharsets.UTF_8),
+                requireStrongSecret(jwtSecret),
                 "HmacSHA256"
         );
+    }
+
+    static byte[] requireStrongSecret(String secret) {
+        byte[] bytes = secret == null ? new byte[0] : secret.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < MIN_JWT_SECRET_BYTES) {
+            throw new IllegalStateException(
+                    "SECRET_KEY deve contenere almeno " + MIN_JWT_SECRET_BYTES
+                            + " byte (HS256, RFC 7518 sez. 3.2); lunghezza attuale: " + bytes.length);
+        }
+        return bytes;
     }
 
 }
