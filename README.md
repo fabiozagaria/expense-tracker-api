@@ -73,7 +73,7 @@ Per entrambi i prefissi `/api/expenses` e `/api/incomes`:
 
 `GET /api/expenses` resta disponibile. Le risposte dell'elenco e di `/api/expenses/search` sono memorizzate in Redis per due minuti, separate per proprietario e parametri di ricerca. Le scritture invalidate dopo il commit riguardano solo il proprietario modificato. In caso di errore Redis le letture usano MySQL; un errore di invalidazione viene registrato e i dati in cache scadono entro due minuti. Le letture simultanee a una scrittura possono ancora osservare una risposta precedente fino alla scadenza: la cache non garantisce consistenza forte.
 
-Docker Compose include Redis senza esporne la porta sull'host. Fuori da Compose impostare `REDIS_URL` con l'URL di un Redis privato (oppure `rediss://` con TLS). `EXPENSE_CACHE_ENABLED=false` disattiva la cache. La configurazione del servizio Redis online resta da predisporre prima del deploy; nessuna risorsa remota viene creata da questa modifica.
+Docker Compose include Redis senza esporne la porta sull'host. Fuori da Compose impostare `REDIS_URL` con l'URL di un Redis privato (oppure `rediss://` con TLS). `EXPENSE_CACHE_ENABLED=false` disattiva la cache. Il Blueprint `render.yaml` dichiara un Render Key Value gratuito (`expense-tracker-cache`, Francoforte, solo connessioni interne) e ne passa l'URL al backend come `REDIS_URL`. Il Blueprint non crea nulla finché non viene sincronizzato su Render; il servizio esistente va collegato o aggiornato a mano.
 
 ### Ricerca e paginazione
 
