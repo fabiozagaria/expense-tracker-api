@@ -25,7 +25,7 @@ public interface IncomeMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "owner", source = "user")
-    @Mapping(target = "description", source = "description", qualifiedByName = "trim")
+    @Mapping(target = "description", source = "request.description", qualifiedByName = "trim")
     Income toEntity(IncomeCreateRequest request, User user);
 
     @Mapping(target = "id", ignore = true)

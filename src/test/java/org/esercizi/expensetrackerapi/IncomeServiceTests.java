@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.*;
 class IncomeServiceTests {
     final IncomeRepository repository = mock(IncomeRepository.class);
     final EntityManager em = mock(EntityManager.class);
-    final IncomeService service = new IncomeService(repository, em);
+    final IncomeService service = new IncomeService(repository, em, new org.esercizi.expensetrackerapi.mapper.IncomeMapperImpl());
     @Test void missingOrForeignIncomeCannotBeReadChangedOrDeleted() {
         when(repository.findByIdAndOwnerUsername(3L, "owner")).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.findByIdOwner(3, "owner")).isInstanceOf(NotFoundIncomeException.class);
