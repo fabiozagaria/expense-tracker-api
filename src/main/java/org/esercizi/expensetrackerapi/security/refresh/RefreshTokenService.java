@@ -74,6 +74,16 @@ public class RefreshTokenService {
 
     }
 
+    /**
+     * Consuma il token in modo atomico: se un'altra richiesta lo ha già revocato
+     * (o è scaduto nel frattempo) lancia InvalidRefreshTokenException.
+     * Va chiamato dentro la transazione che emette il nuovo token.
+     */
+    public void consume(RefreshToken refreshToken) {
+        if (refreshTokenRepository.revokeIfActive(refreshToken.getId(), Instant.now()) == 0)
+            throw new InvalidRefreshTokenException("Token revoked");
+    }
+
     private String hashToken(String rawRefresh) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         byte[] hashBytes = messageDigest.digest(

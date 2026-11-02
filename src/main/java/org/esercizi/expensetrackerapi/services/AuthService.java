@@ -108,7 +108,7 @@ public class AuthService {
         User user = validRefreshToken.getUser();
         String username = user.getUsername();
 
-        validRefreshToken.setRevokeAt(Instant.now());
+        refreshTokenService.consume(validRefreshToken);
 
         String newRefreshRaw = refreshTokenService.generateRefresh();
         refreshTokenService.save(newRefreshRaw, username);
