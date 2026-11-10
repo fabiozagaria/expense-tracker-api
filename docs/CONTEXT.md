@@ -52,7 +52,7 @@ Profilo backend demo, login condiviso e proxy Vercel pubblicati; verifiche API p
 
 ## Registrazione — 2026-10-12
 
-Controllo server di username/email duplicati prima di salvare User e inviare email: HTTP 409 con errorName USERNAME_ALREADY_EXISTS o EMAIL_ALREADY_EXISTS. I vincoli UNIQUE MySQL restano attivi per richieste concorrenti. Email vuota respinta. La password resta BCrypt e il ruolo viene assegnato come USER dal server. Nuovi utenti non verificati non possono fare login. Il profilo demo conserva la registrazione pubblica disabilitata: il provider email HTTPS sarà configurato successivamente.
+Controllo server di username/email duplicati prima di salvare User e inviare email: HTTP 409 con errorName USERNAME_ALREADY_EXISTS o EMAIL_ALREADY_EXISTS. I vincoli UNIQUE MySQL restano attivi per richieste concorrenti. Email vuota respinta. La password resta BCrypt e il ruolo viene assegnato come USER dal server. Nuovi utenti non verificati non possono fare login. Schema del database gestito da Flyway (V1 baseline di Hibernate fino alla 1.0.2, V2 `password_reset_tokens`); `ddl-auto=validate` con `baseline-on-migrate` e `baseline-version=1` per i database già esistenti. Se il link scade, `POST /auth/resend-verification` (body `{email}`) sostituisce il token e rinvia l'email: risposta sempre 202 (non rivela se l'email esiste), cooldown di 60 secondi, disabilitato come la registrazione nel profilo demo. Il profilo demo conserva la registrazione pubblica disabilitata: il provider email HTTPS sarà configurato successivamente.
 
 ## Riproducibilità — 2026-10-22
 

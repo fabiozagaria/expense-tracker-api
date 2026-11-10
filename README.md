@@ -193,7 +193,7 @@ GRANT ALL PRIVILEGES ON `expense-tracker`.* TO 'expense_tracker'@'localhost';
 GRANT ALL PRIVILEGES ON `expense-tracker-test`.* TO 'expense_tracker'@'localhost';
 ```
 
-Se database o utente esistono già, verificarne configurazione e permessi senza ricrearli. Hibernate usa `ddl-auto=update`: l'applicazione può creare o aggiornare tabelle nel database indicato.
+Se database o utente esistono già, verificarne configurazione e permessi senza ricrearli. Lo schema è gestito da **Flyway** (`src/main/resources/db/migration`): all'avvio l'applicazione applica le migrazioni mancanti al database indicato e Hibernate (`ddl-auto=validate`) si limita a verificare che lo schema corrisponda alle entità. Un database già creato da versioni precedenti (con `ddl-auto=update`) viene marcato automaticamente alla versione 1 e riceve solo le migrazioni successive. Per modificare lo schema si aggiunge un nuovo file `V<n>__descrizione.sql`, mai si modifica uno già applicato.
 
 Per Mailpit si può usare un'installazione locale oppure, se Docker è disponibile, avviare solo un container SMTP temporaneo in un altro terminale:
 
@@ -229,29 +229,24 @@ $env:MAIL_HOST='localhost'
 
 ### Compilazione, test e avvio nativo
 
-I test **usano MySQL reale e non creano automaticamente un database isolato**. Possono aggiornare lo schema e inizializzare dati demo: indirizzarli esclusivamente a un database dedicato ai test, senza dati personali o condivisi. Non usare il database della demo pubblica. L'invio email nei test di autenticazione è simulato.
+I test di integrazione usano un **MySQL 8 usa-e-getta avviato da Testcontainers**: serve solo **Docker in esecuzione**. Il container è condiviso da tutti i test e viene rimosso a fine esecuzione. Le impostazioni dei test hanno la precedenza su `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e `SECRET_KEY`, quindi i test non toccano mai il database di sviluppo né quello della demo. L'invio email nei test di autenticazione è simulato e Redis non è necessario (se non raggiungibile la cache viene saltata).
 
-Con le variabili precedenti già impostate, compilare, eseguire i test sul database dedicato e produrre il JAR:
+Compilare, eseguire i test e produrre il JAR (le variabili del database non servono ai test):
 
 ```bash
-(DB_URL='jdbc:mysql://127.0.0.1:3306/expense-tracker-test' ./mvnw clean verify) &&
-  ./mvnw spring-boot:run
+./mvnw clean verify && ./mvnw spring-boot:run
 ```
 
-La subshell limita il cambio di `DB_URL` ai test; l'avvio successivo usa il database di sviluppo. In PowerShell:
+In PowerShell:
 
 ```powershell
-$developmentDbUrl = $env:DB_URL
-try {
-    $env:DB_URL='jdbc:mysql://127.0.0.1:3306/expense-tracker-test'
-    ./mvnw.cmd clean verify
-    if ($LASTEXITCODE -ne 0) { throw 'Build Maven non riuscita.' }
-} finally {
-    $env:DB_URL=$developmentDbUrl
-}
+./mvnw.cmd clean verify
+if ($LASTEXITCODE -ne 0) { throw 'Build Maven non riuscita.' }
 # Avviare solo dopo aver verificato che la build sia riuscita.
 ./mvnw.cmd spring-boot:run
 ```
+
+Lo stesso `./mvnw verify` gira a ogni push e pull request nella GitHub Action `.github/workflows/ci.yml`, insieme a una build dell'immagine Docker.
 
 Il backend risponde su `http://localhost:8080`; arrestarlo con `Ctrl+C`. `FRONTEND_URL` ha default `http://localhost:4200` e controlla CORS e link di verifica. Per provare registrazione e verifica dal browser avviare anche il frontend Angular.
 
