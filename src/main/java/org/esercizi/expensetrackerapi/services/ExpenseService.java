@@ -18,9 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
 import org.esercizi.expensetrackerapi.cache.OwnerExpenseCache;
 import org.esercizi.expensetrackerapi.cache.OwnerExpensesChanged;
-import java.util.List;
+import org.esercizi.expensetrackerapi.dto.CappedList;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
 
 
@@ -47,10 +52,23 @@ public class ExpenseService {
                 expenseRepository.findAll(specification, pageable).map(this::toExpenseResponse)));
     }
 
+    /**
+     * Le spese più recenti, fino a CappedList.MAX_SIZE; il resto si legge con /search (paginato).
+     * L'ordine restituito resta quello storico (id crescente), così per chi sta sotto il tetto
+     * la risposta è identica a prima. La chiave "all:v2" evita di leggere dalla cache le vecchie
+     * liste "all", che avevano un altro tipo.
+     */
     @Transactional(readOnly = true)
-    public List<ExpenseResponse> findAllOwner(String username) {
-        return cache.read(username, "all", () -> new ArrayList<>(expenseRepository
-                .findAllByOwnerUsername(username).stream().map(this::toExpenseResponse).toList()));
+    public CappedList<ExpenseResponse> findAllOwner(String username) {
+        return cache.read(username, "all:v2", () -> {
+            Slice<Expense> newest = expenseRepository.findByOwnerUsername(username,
+                    PageRequest.of(0, CappedList.MAX_SIZE, Sort.by(Sort.Direction.DESC, "date", "id")));
+            ArrayList<ExpenseResponse> items = newest.getContent().stream()
+                    .map(this::toExpenseResponse)
+                    .sorted(Comparator.comparing(ExpenseResponse::id))
+                    .collect(Collectors.toCollection(ArrayList::new));
+            return new CappedList<>(items, newest.hasNext());
+        });
     }
 
     public Expense findByIdOwner(long id, String username) {
