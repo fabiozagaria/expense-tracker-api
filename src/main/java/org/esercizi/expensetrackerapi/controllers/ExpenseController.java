@@ -40,9 +40,13 @@ public class ExpenseController {
         return expenseService.search(authentication.getName(), month, query, page, size, order);
     }
 
+    /**
+     * Array di spese, al massimo CappedList.MAX_SIZE (le più recenti). Se ce ne sono altre,
+     * l'header X-Result-Truncated vale true: per leggerle tutte si usa /search, paginato.
+     */
     @GetMapping
-    public List<ExpenseResponse> getAllExpensesOwner(Authentication authentication) {
-        return expenseService.findAllOwner(authentication.getName());
+    public ResponseEntity<List<ExpenseResponse>> getAllExpensesOwner(Authentication authentication) {
+        return expenseService.findAllOwner(authentication.getName()).toResponse();
     }
 
     @GetMapping("/{id}")

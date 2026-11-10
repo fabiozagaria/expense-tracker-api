@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.esercizi.expensetrackerapi.validation.MaxUtf8Bytes;
 
 public record UserCreateRequest(
         @NotBlank
@@ -16,7 +17,8 @@ public record UserCreateRequest(
         String email,
 
         @NotBlank
-        @Size(min = 6, max = 12)
+        @Size(min = 6)
+        @MaxUtf8Bytes(72)
         String password
 ) {
 }

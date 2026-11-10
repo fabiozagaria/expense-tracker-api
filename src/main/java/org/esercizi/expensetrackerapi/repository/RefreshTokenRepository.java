@@ -1,5 +1,6 @@
 package org.esercizi.expensetrackerapi.repository;
 
+import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.security.refresh.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -26,4 +27,14 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     @Query("update RefreshToken t set t.revokeAt = :now "
             + "where t.id = :id and t.revokeAt is null and t.expireAt > :now")
     int revokeIfActive(@Param("id") Long id, @Param("now") Instant now);
+
+    @Modifying
+    @Query("delete from RefreshToken t where t.expireAt < :cutoff")
+    int deleteExpiredBefore(@Param("cutoff") Instant cutoff);
+
+    /** Chiude tutte le sessioni dell'utente (es. dopo un cambio password). */
+    @Modifying
+    @Query("update RefreshToken t set t.revokeAt = :now "
+            + "where t.user = :user and t.revokeAt is null")
+    int revokeAllActiveByUser(@Param("user") User user, @Param("now") Instant now);
 }

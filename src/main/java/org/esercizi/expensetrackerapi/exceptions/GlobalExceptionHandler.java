@@ -5,11 +5,15 @@ import org.esercizi.expensetrackerapi.exceptions.errors.APIError;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -69,21 +73,52 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<APIError> handleIllegalArgument(
-            IllegalArgumentException illegalArgumentException,
+    /**
+     * Solo gli errori di input previsti dall'applicazione (messaggio scritto per il client).
+     * Un IllegalArgumentException imprevisto NON arriva qui: è un bug interno e non deve
+     * esporre il proprio messaggio. Il nome ILLEGAL_ARGUMENT resta per compatibilità col client.
+     */
+    @ExceptionHandler(InvalidSearchParameterException.class)
+    public ResponseEntity<APIError> handleInvalidSearchParameter(
+            InvalidSearchParameterException exception,
             HttpServletRequest request
     ) {
+        return badRequest("ILLEGAL_ARGUMENT", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<APIError> handleValidation(
+            MethodArgumentNotValidException exception,
+            HttpServletRequest request
+    ) {
+        String details = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .sorted()
+                .collect(Collectors.joining("; "));
+        if (details.isEmpty()) {
+            details = "Richiesta non valida";
+        }
+        return badRequest("VALIDATION_ERROR", details, request);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<APIError> handleUnreadableBody(HttpServletRequest request) {
+        // Il messaggio dell'eccezione contiene dettagli di Jackson: non va esposto.
+        return badRequest("MALFORMED_REQUEST", "Corpo della richiesta mancante o non valido", request);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<APIError> handleTypeMismatch(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request
+    ) {
+        return badRequest("INVALID_PARAMETER", "Parametro non valido: " + exception.getName(), request);
+    }
+
+    private static ResponseEntity<APIError> badRequest(String errorName, String details, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
-        return ResponseEntity
-                .status(status)
-                .body(new APIError(
-                        "ILLEGAL_ARGUMENT",
-                        illegalArgumentException.getMessage(),
-                        request.getRequestURI(),
-                        Instant.now(),
-                        status
-                ));
+        return ResponseEntity.status(status).body(new APIError(
+                errorName, details, request.getRequestURI(), Instant.now(), status));
     }
 
     @ExceptionHandler(InvalidRefreshTokenException.class)
@@ -119,6 +154,17 @@ public class GlobalExceptionHandler {
                         Instant.now(),
                         status
                 ));
+    }
+
+    @ExceptionHandler(InvalidPasswordResetTokenException.class)
+    public ResponseEntity<APIError> handleInvalidPasswordResetToken(
+            InvalidPasswordResetTokenException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(new APIError(
+                "INVALID_PASSWORD_RESET_TOKEN", exception.getMessage(),
+                request.getRequestURI(), Instant.now(), status));
     }
 
     @ExceptionHandler(EmailNotVerifiedException.class)

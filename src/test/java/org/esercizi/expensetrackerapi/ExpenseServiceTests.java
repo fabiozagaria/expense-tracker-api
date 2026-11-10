@@ -66,17 +66,44 @@ class ExpenseServiceTests {
                 ((java.util.function.Supplier<?>) call.getArgument(2)).get());
         var cached = new ExpenseService(repository, new ExpenseMapperImpl(), em, cache, events);
         Expense expense = existing();
-        when(repository.findAllByOwnerUsername("owner1")).thenReturn(java.util.List.of(expense));
+        when(repository.findByOwnerUsername(eq("owner1"), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.SliceImpl<>(java.util.List.of(expense)));
         when(repository.findAll(any(org.springframework.data.jpa.domain.Specification.class),
                 any(org.springframework.data.domain.Pageable.class)))
                 .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(expense)));
 
-        assertThat(cached.findAllOwner("owner1")).extracting("title").containsExactly("Vecchio");
+        var all = cached.findAllOwner("owner1");
+        assertThat(all.items()).extracting("title").containsExactly("Vecchio");
+        assertThat(all.truncated()).isFalse();
         var page = cached.search("owner1", "2026-01", "vecc", 0, 10, "newest");
         assertThat(page.content()).hasSize(1);
         assertThat(page.totalElements()).isEqualTo(1);
         verify(cache).read(eq("owner1"), startsWith("search:"), any());
-        verify(cache).read(eq("owner1"), eq("all"), any());
+        verify(cache).read(eq("owner1"), eq("all:v2"), any());
+    }
+
+    @Test
+    void listIsCappedToTheNewestExpensesAndKeepsTheHistoricalOrder() {
+        var cache = mock(OwnerExpenseCache.class);
+        when(cache.read(anyString(), anyString(), any())).thenAnswer(call ->
+                ((java.util.function.Supplier<?>) call.getArgument(2)).get());
+        var cached = new ExpenseService(repository, new ExpenseMapperImpl(), em, cache, events);
+        Expense newer = existing();
+        newer.setId(9L);
+        Expense older = existing();
+        older.setId(3L);
+        // Il repository restituisce le più recenti per prime e segnala che ne esistono altre.
+        var pageable = org.mockito.ArgumentCaptor.forClass(org.springframework.data.domain.Pageable.class);
+        when(repository.findByOwnerUsername(eq("owner1"), pageable.capture()))
+                .thenReturn(new org.springframework.data.domain.SliceImpl<>(
+                        java.util.List.of(newer, older), org.springframework.data.domain.PageRequest.of(0, 2), true));
+
+        var result = cached.findAllOwner("owner1");
+
+        assertThat(result.truncated()).isTrue();
+        assertThat(result.items()).extracting("id").containsExactly(3L, 9L);
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(org.esercizi.expensetrackerapi.dto.CappedList.MAX_SIZE);
+        assertThat(pageable.getValue().getSort().toString()).isEqualTo("date: DESC,id: DESC");
     }
 
     @Test

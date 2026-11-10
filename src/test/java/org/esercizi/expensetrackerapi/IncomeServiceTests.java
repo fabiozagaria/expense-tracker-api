@@ -41,6 +41,21 @@ class IncomeServiceTests {
         assertThat(created.getOwner()).isSameAs(owner);
         verify(em).persist(created);
     }
+    @Test void listIsCappedToTheNewestIncomesAndKeepsTheHistoricalOrder() {
+        Income newer = new Income(9L, "Nuova", BigDecimal.TEN, null, IncomeCategory.salary, LocalDate.now(), null);
+        Income older = new Income(3L, "Vecchia", BigDecimal.TEN, null, IncomeCategory.salary, LocalDate.now().minusDays(5), null);
+        var pageable = org.mockito.ArgumentCaptor.forClass(org.springframework.data.domain.Pageable.class);
+        when(repository.findByOwnerUsername(eq("owner"), pageable.capture()))
+                .thenReturn(new org.springframework.data.domain.SliceImpl<>(java.util.List.of(newer, older),
+                        org.springframework.data.domain.PageRequest.of(0, 2), true));
+
+        var result = service.findAllOwner("owner");
+
+        assertThat(result.truncated()).isTrue();
+        assertThat(result.items()).extracting("id").containsExactly(3L, 9L);
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(org.esercizi.expensetrackerapi.dto.CappedList.MAX_SIZE);
+        assertThat(pageable.getValue().getSort().toString()).isEqualTo("date: DESC,id: DESC");
+    }
     @Test void paginationIsBoundedAndStable() {
         assertThatThrownBy(() -> MovementSearch.page(-1, 10, "newest")).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> MovementSearch.page(0, 101, "newest")).isInstanceOf(IllegalArgumentException.class);

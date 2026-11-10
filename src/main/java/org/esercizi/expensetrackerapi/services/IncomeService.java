@@ -16,6 +16,12 @@ import org.esercizi.expensetrackerapi.repository.IncomeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.esercizi.expensetrackerapi.dto.CappedList;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -31,8 +37,19 @@ public class IncomeService {
         return MovementPage.from(result.map(this::toIncomeResponse));
     }
 
-    public List<Income> findAllOwner(String username) {
-        return incomeRepository.findAllByOwnerUsername(username);
+    /**
+     * Le entrate più recenti, fino a CappedList.MAX_SIZE; il resto si legge con /search (paginato).
+     * L'ordine restituito resta quello storico (id crescente): sotto il tetto la risposta è identica a prima.
+     */
+    @Transactional(readOnly = true)
+    public CappedList<IncomeResponse> findAllOwner(String username) {
+        Slice<Income> newest = incomeRepository.findByOwnerUsername(username,
+                PageRequest.of(0, CappedList.MAX_SIZE, Sort.by(Sort.Direction.DESC, "date", "id")));
+        List<IncomeResponse> items = newest.getContent().stream()
+                .map(this::toIncomeResponse)
+                .sorted(Comparator.comparing(IncomeResponse::id))
+                .toList();
+        return new CappedList<>(items, newest.hasNext());
     }
 
     @Transactional

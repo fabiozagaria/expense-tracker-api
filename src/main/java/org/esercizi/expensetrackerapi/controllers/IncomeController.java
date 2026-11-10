@@ -38,12 +38,13 @@ public class IncomeController {
         return incomeService.search(authentication.getName(), month, query, page, size, order);
     }
 
+    /**
+     * Array di entrate, al massimo CappedList.MAX_SIZE (le più recenti). Se ce ne sono altre,
+     * l'header X-Result-Truncated vale true: per leggerle tutte si usa /search, paginato.
+     */
     @GetMapping
-    public List<IncomeResponse> getAll(Authentication authentication) {
-        return incomeService.findAllOwner(authentication.getName())
-                .stream()
-                .map(incomeService::toIncomeResponse)
-                .toList();
+    public ResponseEntity<List<IncomeResponse>> getAll(Authentication authentication) {
+        return incomeService.findAllOwner(authentication.getName()).toResponse();
     }
 
     @PostMapping
