@@ -1,13 +1,13 @@
 # Gestionale Spese — Backend API
 
-![Versione](https://img.shields.io/badge/versione-1.0.2-blue)
+![Versione](https://img.shields.io/badge/versione-1.1.0-blue)
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
 ![Stato](https://img.shields.io/badge/perimetro_funzionale-completato-success)
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
-**Versione corrente: 1.0.2 — aggiornamento del 31 ottobre 2026.**
+**Versione corrente: 1.1.0 — aggiornamento del 10 novembre 2026.**
 
 Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e funzionalità future da gestire con nuove versioni. Il progetto resta una demo portfolio, con limiti e verifiche residue dichiarati sotto.
 
@@ -15,6 +15,8 @@ Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e fu
 - [Frontend Angular](https://github.com/fabiozagaria/expense-tracker-angular)
 - [Health backend](https://expense-tracker-api-demo-plb9.onrender.com/health)
 - [Portfolio di Fabio Zagaria](https://fabio-zagaria-portfolio.vercel.app/)
+
+Versione 1.1.0 (retrocompatibile): reinvio della verifica email e reset password, password fino a 72 byte, rate limiting per IP sugli endpoint pubblici, reuse detection dei refresh token con pulizia dei token scaduti, errori di validazione nel formato `APIError`, elenchi di spese ed entrate limitati a 1000 elementi (header `X-Result-Truncated`), schema del database gestito da Flyway, Swagger UI, test isolati con Testcontainers e CI su GitHub Actions.
 
 Versione 1.0.2: introdotto MapStruct per mappare request, entity e response di spese ed entrate; il contratto REST resta invariato.
 
