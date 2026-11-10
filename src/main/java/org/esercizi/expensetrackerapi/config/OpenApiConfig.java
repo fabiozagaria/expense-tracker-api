@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,8 +26,12 @@ public class OpenApiConfig {
                                 con refresh token in cookie, spese, entrate e dashboard.
 
                                 Per provare gli endpoint protetti: `POST /auth/login`, copia l'`accessToken` \
-                                e inseriscilo con il pulsante **Authorize**.""")
+                                e inseriscilo con il pulsante **Authorize**. Dove è attivo il profilo demo basta \
+                                `POST /auth/demo`: restituisce subito un token dell'account demo.""")
                         .license(new License().name("MIT").url("https://opensource.org/licenses/MIT")))
+                // URL relativo: la UI chiama sempre l'origine da cui è stata caricata (schema e host corretti
+                // anche dietro un proxy), invece di quello che il server ricostruisce dalla richiesta.
+                .addServersItem(new Server().url("/"))
                 .components(new Components().addSecuritySchemes(BEARER, new SecurityScheme()
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
