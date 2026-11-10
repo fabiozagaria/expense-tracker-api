@@ -8,8 +8,9 @@
 - Novità 1.2.0, retrocompatibile: `GET /api/me` restituisce `{ username, email }` dell'utente del token (nessun altro campo, mai la password). Serve alla pagina Impostazioni del frontend per inviare il link di cambio password con l'email dell'account. `SecurityConfig` invariato: la rotta è protetta da `anyRequest().authenticated()`.
 - Dalla 1.1.0: reinvio della verifica email, reset password, password fino a 72 byte UTF-8, rate limiting per IP sulle POST pubbliche di `/auth` (429 `RATE_LIMITED` con `Retry-After`), reuse detection dei refresh token, errori in formato `APIError`, elenchi array limitati a 1000 elementi (`X-Result-Truncated`), Flyway, Swagger UI, Testcontainers e CI su GitHub Actions.
 - Suite backend completa il 10 novembre 2026: 122 test passati, zero fallimenti, con Java 21 e MySQL 8.0 Testcontainers.
-- Restano da verificare con il servizio pubblico: il percorso reale reset → email → nuova password e il deploy Render della 1.2.0 (render.yaml indica master; il servizio esistente seguiva demo/render-aiven-setup).
+- Il percorso reale Impostazioni → email → nuova password → login è stato provato dal proprietario sul sito pubblico il 10 novembre 2026 con un'email vera e funziona: la 1.2.0 con `GET /api/me` è quindi online sul servizio pubblico (render.yaml indica master; il servizio esistente seguiva demo/render-aiven-setup).
 - POM e nome JAR allineati a 1.2.0. Il cambio dei manifest non crea da solo un tag Git o una GitHub Release.
+- Il proprietario ha dichiarato il progetto concluso (10 novembre 2026). Unica idea futura, rinviata e a suo carico: eliminazione dell'account (vedi `FUTURE.md`).
 
 ## Cronologia e dettagli tecnici
 
