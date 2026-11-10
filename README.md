@@ -59,7 +59,7 @@ Per entrambi i prefissi `/api/expenses` e `/api/incomes`:
 
 | Metodo | Percorso relativo | Risultato |
 | --- | --- | --- |
-| GET | prefisso base | Array dei movimenti del proprietario; spese servite anche dalla cache Redis |
+| GET | prefisso base | Array dei movimenti del proprietario; spese servite anche dalla cache Redis. Spese ed entrate sono al massimo 1000 ciascuna (le più recenti): se ne esistono altre la risposta ha l'header `X-Result-Truncated: true` e si leggono con `/search`, paginato |
 | GET | `/search` | Pagina filtrata del proprietario (page, size, mese, query, ordine) |
 | GET | `/{id}` | Dettaglio, oppure 404 |
 | POST | prefisso base | Creazione, 201 con risposta del movimento |
