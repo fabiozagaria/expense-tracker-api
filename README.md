@@ -302,6 +302,7 @@ Verifiche del **25 ottobre 2026**, con le righe del **10 novembre 2026** per la 
 | Verifica | Esito |
 | --- | --- |
 | Suite backend completa, versione 1.2.0 (10 novembre), Java 21 e MySQL 8.0 Testcontainers | 122 test passati, zero fallimenti |
+| Percorso reale Impostazioni → email → nuova password → login sul sito pubblico, versione 1.2.0 (10 novembre) | Confermato dal proprietario |
 | CI GitHub Actions su master, versione 1.1.0 (10 novembre) | Riuscita |
 | Suite Angular, frontend 1.1.0 (10 novembre) | 87 test passati |
 | Build Angular production, frontend 1.1.0 (10 novembre) | Riuscita; restano gli avvisi di budget |
