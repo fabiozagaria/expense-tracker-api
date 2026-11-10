@@ -34,6 +34,7 @@ class OpenApiDocsTests {
                 .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat").value("JWT"))
                 .andExpect(jsonPath("$.paths['/api/expenses']").exists())
                 .andExpect(jsonPath("$.paths['/api/incomes']").exists())
+                .andExpect(jsonPath("$.paths['/api/me']").exists())
                 .andExpect(jsonPath("$.paths['/auth/reset-password']").exists());
     }
 
