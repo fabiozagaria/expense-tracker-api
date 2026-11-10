@@ -1,16 +1,16 @@
 # Demo portfolio: Render + Aiven + Vercel
 
-## Stato corrente — 25 ottobre 2026
+## Stato corrente — 10 novembre 2026
 
-**Versione corrente 1.0.1**, salvo correzioni di bug, refactoring e funzionalità future. Questa sezione e il README descrivono lo stato attuale; le note successive conservano la cronologia e possono descrivere stati superati.
+**Versione corrente 1.1.0** (frontend compatibile 1.1.0). Questa sezione e il README descrivono lo stato attuale; le note successive conservano la cronologia e possono descrivere stati superati.
 
-- Frontend Vercel e backend Render con MySQL Aiven/TLS; registrazione online e Brevo HTTPS attivi. Registrazione reale e caricamento liste confermati dal proprietario.
-- CRUD completo spese/entrate e liste /api/{expenses,incomes}/search con paginazione, mese/anno, ordine data/ID e ricerca titolo/descrizione/importo/data.
-- Render esistente segue demo/render-aiven-setup, allineato al merge funzionale di master; render.yaml indica master. Aggiornare master non certifica da solo il deploy di quel servizio.
-- Suite backend completa: 14 test passati con Java 21.0.13 e MySQL 8.0.46 temporaneo, zero fallimenti/errori/skipped. Nessun dato online utilizzato.
-- Frontend: 62 test e build production riusciti; avvisi sui budget iniziale e CSS login/dashboard. Correzione link entrate dalla dashboard pubblicata su Vercel.
-- Restano il controllo visivo sistematico desktop/mobile e temi, il percorso integrale nel browser locale con Mailpit e la verifica completa del Compose originale senza i precedenti problemi del proxy TLS.
-- Versioni dei manifest allineate a 1.0.1. Nessun tag Git o GitHub Release creato da questo aggiornamento.
+- Frontend Vercel e backend Render con MySQL Aiven/TLS; registrazione online e Brevo HTTPS attivi.
+- Novità 1.1.0, retrocompatibili: reinvio della verifica email (`POST /auth/resend-verification`) e reset password (`POST /auth/forgot-password`, `/auth/reset-password`), password fino a 72 byte UTF-8, rate limiting per IP sulle POST pubbliche di `/auth` (429 `RATE_LIMITED` con `Retry-After`), reuse detection dei refresh token, errori di validazione in formato `APIError`, elenchi array limitati a 1000 elementi (`X-Result-Truncated`), Flyway, Swagger UI, Testcontainers e CI su GitHub Actions.
+- Gli errori inviati con `sendError` (es. 403 del controllo d'origine) mantengono il loro stato invece di diventare 401.
+- Il frontend 1.1.0 usa tutti questi endpoint: pagine `/forgot-password`, `/reset-password` (destinazione del link email) e `/resend-verification`, dettaglio `GET /api/incomes/{id}`, liste e dashboard da `/search`. 87 test Angular e build production riusciti.
+- CI GitHub Actions verde sul merge della 1.1.0 in master (run del 10 novembre 2026).
+- Restano da verificare con il servizio pubblico: il percorso reale reset → email → nuova password e il deploy Render della 1.1.0 (render.yaml indica master; il servizio esistente seguiva demo/render-aiven-setup).
+- POM e nome JAR allineati a 1.1.0. Il cambio dei manifest non crea da solo un tag Git o una GitHub Release.
 
 ## Cronologia e dettagli tecnici
 
