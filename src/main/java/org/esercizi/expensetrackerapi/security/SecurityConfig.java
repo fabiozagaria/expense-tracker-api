@@ -7,7 +7,11 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import org.esercizi.expensetrackerapi.dto.CappedList;
+import org.esercizi.expensetrackerapi.security.ratelimit.RateLimitFilter;
+import org.esercizi.expensetrackerapi.security.ratelimit.RateLimiter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -50,14 +54,27 @@ public class SecurityConfig {
     private String frontendUrl;
     @Value("${app.require-auth-origin:false}")
     private boolean requireAuthOrigin;
+    @Value("${app.rate-limit.enabled:true}")
+    private boolean rateLimitEnabled;
+
+    @Bean
+    public RateLimiter rateLimiter() {
+        return new RateLimiter();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity httpSecurity
+            HttpSecurity httpSecurity,
+            RateLimiter rateLimiter,
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver
     ) {
+        httpSecurity.addFilterBefore(new AuthOriginFilter(frontendUrl, requireAuthOrigin),
+                UsernamePasswordAuthenticationFilter.class);
+        if (rateLimitEnabled) {
+            httpSecurity.addFilterBefore(new RateLimitFilter(rateLimiter, exceptionResolver),
+                    UsernamePasswordAuthenticationFilter.class);
+        }
         return httpSecurity
-                .addFilterBefore(new AuthOriginFilter(frontendUrl, requireAuthOrigin),
-                        UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(
                         session ->
                                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -84,6 +101,11 @@ public class SecurityConfig {
                                                 "/auth/reset-password"
                                         ).permitAll()
                                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
+                                        // Documentazione pubblica del contratto REST (si spegne con SWAGGER_ENABLED=false).
+                                        .requestMatchers(HttpMethod.GET,
+                                                "/v3/api-docs", "/v3/api-docs/**",
+                                                "/swagger-ui.html", "/swagger-ui/**"
+                                        ).permitAll()
                                 .anyRequest().authenticated()
                 )
                 .build();

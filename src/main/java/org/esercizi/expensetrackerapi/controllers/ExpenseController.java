@@ -1,5 +1,8 @@
 package org.esercizi.expensetrackerapi.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+
 import org.esercizi.expensetrackerapi.dto.MovementPage;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+@Tag(name = "Spese", description = "CRUD, ricerca paginata e lista delle spese del proprietario.")
 @RestController
 @RequestMapping("/api/expenses")
 @RequiredArgsConstructor
@@ -44,6 +48,7 @@ public class ExpenseController {
      * Array di spese, al massimo CappedList.MAX_SIZE (le più recenti). Se ce ne sono altre,
      * l'header X-Result-Truncated vale true: per leggerle tutte si usa /search, paginato.
      */
+    @Operation(summary = "Elenco delle spese", description = "Al massimo 1000 elementi, i più recenti, come array JSON. Se ne esistono altri la risposta ha l'header `X-Result-Truncated: true`: per leggerli tutti usare `/search`, paginato.")
     @GetMapping
     public ResponseEntity<List<ExpenseResponse>> getAllExpensesOwner(Authentication authentication) {
         return expenseService.findAllOwner(authentication.getName()).toResponse();

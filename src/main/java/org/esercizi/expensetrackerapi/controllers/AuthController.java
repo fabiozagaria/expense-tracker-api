@@ -1,5 +1,8 @@
 package org.esercizi.expensetrackerapi.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +30,8 @@ import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 
+@Tag(name = "Autenticazione", description = "Registrazione, verifica email, login, refresh e reset password. Endpoint pubblici.")
+@SecurityRequirements
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
