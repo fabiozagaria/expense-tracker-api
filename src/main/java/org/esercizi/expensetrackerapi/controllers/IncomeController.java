@@ -1,5 +1,8 @@
 package org.esercizi.expensetrackerapi.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+
 import org.esercizi.expensetrackerapi.dto.MovementPage;
 import org.esercizi.expensetrackerapi.dto.income.IncomeUpdateRequest;
 import org.esercizi.expensetrackerapi.dto.income.IncomePatchRequest;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+@Tag(name = "Entrate", description = "CRUD, ricerca paginata e lista delle entrate del proprietario.")
 @RestController
 @RequestMapping("/api/incomes")
 @RequiredArgsConstructor
@@ -42,6 +46,7 @@ public class IncomeController {
      * Array di entrate, al massimo CappedList.MAX_SIZE (le più recenti). Se ce ne sono altre,
      * l'header X-Result-Truncated vale true: per leggerle tutte si usa /search, paginato.
      */
+    @Operation(summary = "Elenco delle entrate", description = "Al massimo 1000 elementi, i più recenti, come array JSON. Se ne esistono altri la risposta ha l'header `X-Result-Truncated: true`: per leggerli tutti usare `/search`, paginato.")
     @GetMapping
     public ResponseEntity<List<IncomeResponse>> getAll(Authentication authentication) {
         return incomeService.findAllOwner(authentication.getName()).toResponse();

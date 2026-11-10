@@ -84,6 +84,11 @@ public class SecurityConfig {
                                                 "/auth/reset-password"
                                         ).permitAll()
                                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
+                                        // Documentazione pubblica del contratto REST (si spegne con SWAGGER_ENABLED=false).
+                                        .requestMatchers(HttpMethod.GET,
+                                                "/v3/api-docs", "/v3/api-docs/**",
+                                                "/swagger-ui.html", "/swagger-ui/**"
+                                        ).permitAll()
                                 .anyRequest().authenticated()
                 )
                 .build();

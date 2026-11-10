@@ -106,6 +106,17 @@ Duplicati username/email: 409. Fallimento dell'invio email: 503 `EMAIL_DELIVERY_
 
 Brevo riceve testo e HTML con link valido per 10 minuti; il backend richiede una risposta `201` con `messageId` prima di accettare l'invio. Questa conferma non dimostra la consegna in inbox. Configurazione, timeout, assenza di retry automatici e limiti transazionali sono descritti in [EMAIL.md](docs/EMAIL.md). Il contratto pubblico, le variabili `MAIL_FROM`/`MAIL_PROVIDER` e la registrazione online restano compatibili con la versione 1.0.0.
 
+### Documentazione OpenAPI (Swagger)
+
+Il contratto REST è documentato in modo navigabile con springdoc:
+
+| Risorsa | Indirizzo |
+|---|---|
+| Swagger UI | `/swagger-ui.html` |
+| Specifica OpenAPI (JSON) | `/v3/api-docs` |
+
+Sono pubbliche e non richiedono token. Per provare gli endpoint protetti: `POST /auth/login`, copiare l'`accessToken` e inserirlo con **Authorize**. Con `REQUIRE_AUTH_ORIGIN=true` (deploy) gli endpoint `/auth/*` rifiutano le richieste che non arrivano dal frontend, quindi il login dalla Swagger UI del deploy non funziona: il token si ottiene dall'applicazione. `SWAGGER_ENABLED=false` spegne entrambe le risorse.
+
 ## Deploy attuale
 
 | Componente | Configurazione |
