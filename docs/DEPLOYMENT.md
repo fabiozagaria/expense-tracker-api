@@ -10,6 +10,7 @@
 - Suite backend completa il 10 novembre 2026: 122 test passati, zero fallimenti, con Java 21 e MySQL 8.0 Testcontainers.
 - Il percorso reale Impostazioni → email → nuova password → login è stato provato dal proprietario sul sito pubblico il 10 novembre 2026 con un'email vera e funziona: la 1.2.0 con `GET /api/me` è quindi online sul servizio pubblico (render.yaml indica master; il servizio esistente seguiva demo/render-aiven-setup).
 - POM e nome JAR allineati a 1.2.0. Il cambio dei manifest non crea da solo un tag Git o una GitHub Release.
+- Il proprietario ha dichiarato il progetto concluso (10 novembre 2026). Unica idea futura, rinviata e a suo carico: eliminazione dell'account (vedi `FUTURE.md`).
 
 ## Cronologia e dettagli tecnici
 
