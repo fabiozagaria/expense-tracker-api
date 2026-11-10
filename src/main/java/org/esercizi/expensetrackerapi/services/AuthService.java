@@ -125,12 +125,14 @@ public class AuthService {
 
     }
 
-    @Transactional
+    // noRollbackFor: se viene rilevato il riuso di un token, la revoca di tutte le sessioni deve
+    // restare anche se poi la richiesta fallisce con InvalidRefreshTokenException.
+    @Transactional(noRollbackFor = InvalidRefreshTokenException.class)
     public AccessAndRefresh refresh(String rawToken) throws NoSuchAlgorithmException {
         if (rawToken == null)
             throw new InvalidRefreshTokenException("Cookie not exists");
 
-        RefreshToken validRefreshToken = refreshTokenService.verifyRefresh(rawToken);
+        RefreshToken validRefreshToken = refreshTokenService.verifyForRotation(rawToken);
         User user = validRefreshToken.getUser();
         String username = user.getUsername();
 

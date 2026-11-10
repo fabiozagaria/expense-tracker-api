@@ -2,6 +2,7 @@ package org.esercizi.expensetrackerapi.security.refresh;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.esercizi.expensetrackerapi.exceptions.InvalidRefreshTokenException;
 import org.esercizi.expensetrackerapi.model.user.User;
 import org.esercizi.expensetrackerapi.repository.RefreshTokenRepository;
@@ -12,13 +13,18 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RefreshTokenService {
+    /** Entro questo tempo dalla rotazione, un riuso dello stesso token è considerato una gara, non un furto. */
+    static final Duration REUSE_GRACE = Duration.ofSeconds(10);
+
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserService userService;
     private final EntityManager entityManager;
@@ -72,6 +78,34 @@ public class RefreshTokenService {
         return refreshToken;
 
 
+    }
+
+    /**
+     * Come {@link #verifyRefresh}, ma per la rotazione: il riuso di un token GIÀ ruotato oltre la
+     * finestra di tolleranza è il segnale tipico di un token rubato (il ladro e il proprietario ne
+     * hanno una copia ciascuno). In quel caso si chiudono tutte le sessioni dell'utente.
+     * Dentro la finestra è invece il normale scenario "due richieste di refresh insieme" (due tab,
+     * un retry di rete): si respinge soltanto quella in ritardo.
+     * Il chiamante deve usare noRollbackFor, altrimenti l'eccezione annulla la revoca.
+     */
+    public RefreshToken verifyForRotation(String refresh) throws NoSuchAlgorithmException {
+        RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(hashToken(refresh))
+                .orElseThrow(() -> new InvalidRefreshTokenException("Token not found"));
+        Instant now = Instant.now();
+
+        if (refreshToken.getExpireAt().isBefore(now))
+            throw new InvalidRefreshTokenException("Token expired");
+
+        if (refreshToken.getRevokeAt() != null) {
+            if (refreshToken.getRevokeAt().plus(REUSE_GRACE).isBefore(now)) {
+                log.warn("Riuso di un refresh token già ruotato: sessioni chiuse per l'utente id={}",
+                        refreshToken.getUser().getId());
+                revokeAllFor(refreshToken.getUser());
+            }
+            // Stesso messaggio in entrambi i casi: chi attacca non deve capire se ha fatto scattare l'allarme.
+            throw new InvalidRefreshTokenException("Token revoked");
+        }
+        return refreshToken;
     }
 
     /**
