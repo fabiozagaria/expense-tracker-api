@@ -3,6 +3,7 @@ package org.esercizi.expensetrackerapi.support;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.mysql.MySQLContainer;
 
 /**
@@ -29,5 +30,13 @@ public class MySqlTestContainerInitializer implements ApplicationContextInitiali
                 "spring.datasource.password=" + MYSQL.getPassword(),
                 "jwt.secret=test-only-secret-key-that-is-at-least-32-bytes-long"
         ).applyTo(context);
+        // Tutti i test chiamano /auth/login dallo stesso "IP" (127.0.0.1) molte volte al minuto: il limite
+        // è spento di default. Chi lo vuole provare lo accende con @SpringBootTest(properties = ...):
+        // si guarda solo la sorgente delle proprietà inline, perché application.properties lo definisce già.
+        var inline = context.getEnvironment().getPropertySources()
+                .get(TestPropertySourceUtils.INLINED_PROPERTIES_PROPERTY_SOURCE_NAME);
+        if (inline == null || !inline.containsProperty("app.rate-limit.enabled")) {
+            TestPropertyValues.of("app.rate-limit.enabled=false").applyTo(context);
+        }
     }
 }

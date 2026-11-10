@@ -106,6 +106,24 @@ Duplicati username/email: 409. Fallimento dell'invio email: 503 `EMAIL_DELIVERY_
 
 Brevo riceve testo e HTML con link valido per 10 minuti; il backend richiede una risposta `201` con `messageId` prima di accettare l'invio. Questa conferma non dimostra la consegna in inbox. Configurazione, timeout, assenza di retry automatici e limiti transazionali sono descritti in [EMAIL.md](docs/EMAIL.md). Il contratto pubblico, le variabili `MAIL_FROM`/`MAIL_PROVIDER` e la registrazione online restano compatibili con la versione 1.0.0.
 
+### Rate limiting
+
+Le `POST` agli endpoint pubblici di `/auth` sono limitate **per indirizzo IP** con un token bucket (Bucket4j) in memoria. Superata la soglia la risposta è `429` con header `Retry-After` (secondi) e corpo `APIError` con `errorName` `RATE_LIMITED`.
+
+| Categoria | Endpoint | Soglia |
+|---|---|---|
+| Login | `/auth/login` | 10 al minuto |
+| Demo | `/auth/demo` | 30 al minuto |
+| Email | `/auth/register`, `/auth/resend-verification`, `/auth/forgot-password` | 5 all'ora (condivisa) |
+| Token | `/auth/verify-email`, `/auth/reset-password` | 10 al minuto |
+| Sessione | `/auth/refresh`, `/auth/logout` | 30 al minuto |
+
+La capacità è la raffica consentita; i token tornano in modo continuo. `RATE_LIMIT_ENABLED=false` lo spegne. Limiti da conoscere:
+
+- **Stato in memoria, per processo**: con più istanze ogni istanza conta per conto suo. Per il deploy attuale (istanza singola) è esatto; un riavvio azzera i contatori.
+- **IP dietro proxy**: l'IP è quello visto dal server. Nel profilo `demo` è attivo `server.forward-headers-strategy=native`, così Tomcat legge `X-Forwarded-For` solo se arriva da un proxy interno. Se in un altro deploy la configurazione manca, tutti i client condividono l'IP del proxy e quindi lo stesso bucket.
+- Il limite è per IP e non per account: non protegge da un attacco distribuito su molti IP.
+
 ### Documentazione OpenAPI (Swagger)
 
 Il contratto REST è documentato in modo navigabile con springdoc:

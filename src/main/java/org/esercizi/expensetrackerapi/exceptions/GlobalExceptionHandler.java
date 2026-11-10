@@ -2,6 +2,7 @@ package org.esercizi.expensetrackerapi.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.esercizi.expensetrackerapi.exceptions.errors.APIError;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -84,6 +85,18 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return badRequest("ILLEGAL_ARGUMENT", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<APIError> handleRateLimit(
+            RateLimitExceededException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
+        return ResponseEntity.status(status)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(exception.getRetryAfterSeconds()))
+                .body(new APIError("RATE_LIMITED", exception.getMessage(),
+                        request.getRequestURI(), Instant.now(), status));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
