@@ -2,6 +2,7 @@ package org.esercizi.expensetrackerapi.services;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import org.esercizi.expensetrackerapi.exceptions.InvalidSearchParameterException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,17 +10,17 @@ import org.springframework.data.jpa.domain.Specification;
 public final class MovementSearch {
     private MovementSearch() {}
     public static PageRequest page(int page, int size, String order) {
-        if (page < 0 || size < 1 || size > 100) throw new IllegalArgumentException("Page must be nonnegative; size must be 1–100");
-        if (!order.equals("newest") && !order.equals("oldest")) throw new IllegalArgumentException("Invalid order");
+        if (page < 0 || size < 1 || size > 100) throw new InvalidSearchParameterException("Page must be nonnegative; size must be 1–100");
+        if (!order.equals("newest") && !order.equals("oldest")) throw new InvalidSearchParameterException("Invalid order");
         Sort.Direction direction = order.equals("newest") ? Sort.Direction.DESC : Sort.Direction.ASC;
         return PageRequest.of(page, size, Sort.by(direction, "date", "id"));
     }
     public static <T> Specification<T> owned(String username, String month, String query) {
-        if (query.length() > 100) throw new IllegalArgumentException("Search too long");
+        if (query.length() > 100) throw new InvalidSearchParameterException("Search too long");
         final YearMonth period;
         try { period = month.isBlank() ? null : YearMonth.parse(month); }
-        catch (java.time.DateTimeException e) { throw new IllegalArgumentException("Month must be yyyy-MM"); }
-        if (period != null && (period.getYear() < 1 || period.getYear() > 9999)) throw new IllegalArgumentException("Invalid year");
+        catch (java.time.DateTimeException e) { throw new InvalidSearchParameterException("Month must be yyyy-MM"); }
+        if (period != null && (period.getYear() < 1 || period.getYear() > 9999)) throw new InvalidSearchParameterException("Invalid year");
         String pattern = "%" + query.trim().toLowerCase(java.util.Locale.ROOT)
                 .replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
         return (root, criteria, cb) -> {
