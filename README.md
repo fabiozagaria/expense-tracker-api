@@ -133,7 +133,18 @@ Il contratto REST è documentato in modo navigabile con springdoc:
 | Swagger UI | `/swagger-ui.html` |
 | Specifica OpenAPI (JSON) | `/v3/api-docs` |
 
-Sono pubbliche e non richiedono token. Per provare gli endpoint protetti: `POST /auth/login`, copiare l'`accessToken` e inserirlo con **Authorize**. Con `REQUIRE_AUTH_ORIGIN=true` (deploy) gli endpoint `/auth/*` rifiutano le richieste che non arrivano dal frontend, quindi il login dalla Swagger UI del deploy non funziona: il token si ottiene dall'applicazione. `SWAGGER_ENABLED=false` spegne entrambe le risorse.
+Sono pubbliche e non richiedono token. `SWAGGER_ENABLED=false` spegne entrambe le risorse. Per provare gli endpoint protetti: `POST /auth/login`, copiare l'`accessToken` e inserirlo con **Authorize**.
+
+**Nel deploy demo** la Swagger UI è raggiungibile all'indirizzo del backend, da linkare nel portfolio:
+
+`https://expense-tracker-api-demo-plb9.onrender.com/swagger-ui.html`
+
+Basta eseguire `POST /auth/demo` (Try it out, Execute), copiare l'`accessToken` della risposta e inserirlo in **Authorize**: da lì si provano tutti gli endpoint sui dati dell'account demo. Note:
+
+- **Avvio a freddo**: sul piano gratuito di Render il servizio si sospende dopo un periodo di inattività e il primo accesso può richiedere circa un minuto.
+- **Controllo d'origine**: nel profilo `demo` le `POST /auth/*` accettano solo `Origin` uguale a `FRONTEND_URL`. Se la Swagger UI è attiva è ammessa anche l'origine pubblica del backend (`API_PUBLIC_URL`, nel profilo `demo` il valore di Render sopra), perché da lì parte il "Try it out". Se si spegne Swagger, resta solo il frontend. Un altro dominio, come un'anteprima Vercel, non è ammesso.
+- **Altro dominio**: per servire la UI anche dal dominio del frontend (`gestionale-spese.vercel.app/swagger-ui.html`) basta aggiungere in `vercel.json` del frontend le rewrites di `/swagger-ui.html`, `/swagger-ui/*` e `/v3/api-docs/*` verso il backend: le richieste avrebbero `Origin` uguale a `FRONTEND_URL`, senza altre modifiche.
+- Un `<iframe>` nel portfolio non funziona senza altre modifiche: Spring Security invia `X-Frame-Options: DENY`. Si usa un link.
 
 ## Deploy attuale
 

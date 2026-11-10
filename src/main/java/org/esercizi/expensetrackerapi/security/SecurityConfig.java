@@ -39,7 +39,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
@@ -56,6 +58,23 @@ public class SecurityConfig {
     private boolean requireAuthOrigin;
     @Value("${app.rate-limit.enabled:true}")
     private boolean rateLimitEnabled;
+    @Value("${app.api-public-url:}")
+    private String apiPublicUrl;
+    @Value("${springdoc.swagger-ui.enabled:true}")
+    private boolean swaggerUiEnabled;
+
+    /**
+     * Origini da cui sono ammesse le POST /auth/*: il frontend e, se la Swagger UI è attiva e l'URL
+     * pubblico del backend è configurato, il backend stesso (da lì parte il "Try it out" della UI).
+     */
+    private Set<String> allowedAuthOrigins() {
+        Set<String> origins = new HashSet<>();
+        origins.add(frontendUrl);
+        if (swaggerUiEnabled && !apiPublicUrl.isBlank()) {
+            origins.add(apiPublicUrl.replaceAll("/+$", ""));
+        }
+        return Set.copyOf(origins);
+    }
 
     @Bean
     public RateLimiter rateLimiter() {
@@ -68,7 +87,7 @@ public class SecurityConfig {
             RateLimiter rateLimiter,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver
     ) {
-        httpSecurity.addFilterBefore(new AuthOriginFilter(frontendUrl, requireAuthOrigin),
+        httpSecurity.addFilterBefore(new AuthOriginFilter(allowedAuthOrigins(), requireAuthOrigin),
                 UsernamePasswordAuthenticationFilter.class);
         if (rateLimitEnabled) {
             httpSecurity.addFilterBefore(new RateLimitFilter(rateLimiter, exceptionResolver),
@@ -126,7 +145,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(frontendUrl));
+        // Anche l'origine del backend (se la Swagger UI è attiva): senza, il CorsFilter rifiuterebbe con 403 le
+        // richieste della UI quando host o schema ricostruiti dietro il proxy non coincidono con l'Origin.
+        configuration.setAllowedOrigins(List.copyOf(allowedAuthOrigins()));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         // Senza questo il browser non lascia leggere l'header da JavaScript (CORS).
