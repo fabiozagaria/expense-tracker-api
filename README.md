@@ -1,13 +1,13 @@
 # Gestionale Spese — Backend API
 
-![Versione](https://img.shields.io/badge/versione-1.1.0-blue)
+![Versione](https://img.shields.io/badge/versione-1.2.0-blue)
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
 ![Stato](https://img.shields.io/badge/perimetro_funzionale-completato-success)
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
-**Versione corrente: 1.1.0 — aggiornamento del 10 novembre 2026.** Frontend compatibile: **1.1.0**.
+**Versione corrente: 1.2.0 — aggiornamento del 10 novembre 2026.** Frontend compatibile: **1.2.0**.
 
 Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e funzionalità future da gestire con nuove versioni. Il progetto resta una demo portfolio, con limiti e verifiche residue dichiarati sotto.
 
@@ -15,6 +15,8 @@ Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e fu
 - [Frontend Angular](https://github.com/fabiozagaria/expense-tracker-angular)
 - [Health backend](https://expense-tracker-api-demo-plb9.onrender.com/health)
 - [Portfolio di Fabio Zagaria](https://fabio-zagaria-portfolio.vercel.app/)
+
+Versione 1.2.0 (retrocompatibile): nuovo `GET /api/me` con username ed email dell'utente autenticato, usato dalla pagina Impostazioni del frontend per inviare il link di cambio password senza riscrivere l'email.
 
 Versione 1.1.0 (retrocompatibile): reinvio della verifica email e reset password, password fino a 72 byte, rate limiting per IP sugli endpoint pubblici, reuse detection dei refresh token con pulizia dei token scaduti, errori di validazione nel formato `APIError`, elenchi di spese ed entrate limitati a 1000 elementi (header `X-Result-Truncated`), schema del database gestito da Flyway, Swagger UI, test isolati con Testcontainers e CI su GitHub Actions.
 
@@ -69,7 +71,7 @@ Per entrambi i prefissi `/api/expenses` e `/api/incomes`:
 | PATCH | `/{id}` | Modifica dei campi presenti e non null, 200 |
 | DELETE | `/{id}` | Eliminazione, 200 con risposta del movimento eliminato |
 
-`GET /api/dashboard/summary` restituisce `totalIncome`, `totalExpense` e `balance`. Gli endpoint `/api/**` richiedono `Authorization: Bearer <access token>`.
+`GET /api/dashboard/summary` restituisce `totalIncome`, `totalExpense` e `balance`. `GET /api/me` restituisce `username` ed `email` dell'utente del token (mai la password); senza token risponde 401. Gli endpoint `/api/**` richiedono `Authorization: Bearer <access token>`.
 
 ### Cache Redis delle spese
 
@@ -299,6 +301,7 @@ Verifiche del **25 ottobre 2026**, con le righe del **10 novembre 2026** per la 
 
 | Verifica | Esito |
 | --- | --- |
+| Suite backend completa, versione 1.2.0 (10 novembre), Java 21 e MySQL 8.0 Testcontainers | 122 test passati, zero fallimenti |
 | CI GitHub Actions su master, versione 1.1.0 (10 novembre) | Riuscita |
 | Suite Angular, frontend 1.1.0 (10 novembre) | 87 test passati |
 | Build Angular production, frontend 1.1.0 (10 novembre) | Riuscita; restano gli avvisi di budget |
@@ -316,7 +319,7 @@ Restano aperti il controllo visivo sistematico desktop/mobile nei due temi, il p
 
 ## Versioning e manutenzione
 
-Prima versione funzionalmente conclusa: **1.0.0**, riferimento **25 ottobre 2026**. Versioni correnti: backend **1.1.0**, frontend **1.1.0**. POM e nome JAR nel Dockerfile sono allineati; il cambio dei manifest non crea automaticamente un tag Git o una GitHub Release.
+Prima versione funzionalmente conclusa: **1.0.0**, riferimento **25 ottobre 2026**. Versioni correnti: backend **1.2.0**, frontend **1.2.0**. POM e nome JAR nel Dockerfile sono allineati; il cambio dei manifest non crea automaticamente un tag Git o una GitHub Release.
 
 - **PATCH** (`1.0.1`): correzioni compatibili e manutenzione/refactoring senza cambiare il contratto pubblico.
 - **MINOR** (`1.1.0`): nuove funzionalità compatibili.
