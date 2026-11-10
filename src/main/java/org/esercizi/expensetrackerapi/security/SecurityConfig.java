@@ -1,6 +1,7 @@
 package org.esercizi.expensetrackerapi.security;
 
 import com.nimbusds.jose.jwk.JWK;
+import jakarta.servlet.DispatcherType;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -108,7 +109,11 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers(HttpMethod.POST,
+                                // Gli errori inviati con sendError (es. il 403 di AuthOriginFilter) passano da un dispatch
+                                // interno verso /error: se richiedesse autenticazione, lo stato diventerebbe 401 e
+                                // nasconderebbe la causa. Vale solo per il dispatch ERROR, non per richieste dirette a /error.
+                                auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                                        .requestMatchers(HttpMethod.POST,
                                                 "/auth/login",
                                 "/auth/demo",
                                                 "/auth/register",
