@@ -55,6 +55,38 @@ class OpenApiDocsTests {
     }
 
     @Test
+    void errorResponsesAreDeclaredWhereTheyCanHappen() throws Exception {
+        mvc.perform(get("/v3/api-docs"))
+                // Lo schema degli errori è registrato e le risposte lo referenziano.
+                .andExpect(jsonPath("$.components.schemas.APIError.properties.errorName").exists())
+                .andExpect(jsonPath("$.paths['/api/expenses'].post.responses['400'].content['application/json'].schema['$ref']")
+                        .value("#/components/schemas/APIError"))
+                // Endpoint protetto: 401 senza corpo; con parametri: 400.
+                .andExpect(jsonPath("$.paths['/api/expenses'].get.responses['401']").exists())
+                .andExpect(jsonPath("$.paths['/api/expenses/search'].get.responses['400']").exists())
+                // Login: errori specifici dalle annotazioni, più 400 e 429 dal customizer.
+                .andExpect(jsonPath("$.paths['/auth/login'].post.responses['401'].description").value(containsString("INVALID_CREDENTIALS")))
+                .andExpect(jsonPath("$.paths['/auth/login'].post.responses['403'].description").value(containsString("EMAIL_NOT_VERIFIED")))
+                .andExpect(jsonPath("$.paths['/auth/login'].post.responses['400']").exists())
+                .andExpect(jsonPath("$.paths['/auth/login'].post.responses['429'].headers['Retry-After']").exists())
+                .andExpect(jsonPath("$.paths['/auth/forgot-password'].post.responses['429']").exists())
+                .andExpect(jsonPath("$.paths['/auth/refresh'].post.responses['401'].description").value(containsString("INVALID_REFRESH_TOKEN")))
+                .andExpect(jsonPath("$.paths['/auth/refresh'].post.responses['429']").exists());
+    }
+
+    @Test
+    void errorsAreNotDeclaredWhereTheyCannotHappen() throws Exception {
+        mvc.perform(get("/v3/api-docs"))
+                // Pubblico e senza input: nessun 400, 401 o 429. Le GET non sono limitate dal rate limiter.
+                .andExpect(jsonPath("$.paths['/health'].get.responses['400']").doesNotExist())
+                .andExpect(jsonPath("$.paths['/health'].get.responses['401']").doesNotExist())
+                .andExpect(jsonPath("$.paths['/health'].get.responses['429']").doesNotExist())
+                .andExpect(jsonPath("$.paths['/api/expenses'].get.responses['429']").doesNotExist())
+                // Il login è pubblico: il suo 401 è quello delle credenziali, non quello del token.
+                .andExpect(jsonPath("$.paths['/auth/login'].post.responses['401'].description").value(not(containsString("Token di accesso"))));
+    }
+
+    @Test
     void swaggerUiIsPublic() throws Exception {
         mvc.perform(get("/swagger-ui/index.html"))
                 .andExpect(status().isOk())

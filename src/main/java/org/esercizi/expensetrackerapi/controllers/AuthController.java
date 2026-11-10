@@ -1,5 +1,8 @@
 package org.esercizi.expensetrackerapi.controllers;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
@@ -17,6 +20,7 @@ import org.esercizi.expensetrackerapi.dto.login.RegistrationResponse;
 import org.esercizi.expensetrackerapi.dto.login.ResendVerificationRequest;
 import org.esercizi.expensetrackerapi.dto.login.ResetPasswordRequest;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
+import org.esercizi.expensetrackerapi.exceptions.errors.APIError;
 import org.esercizi.expensetrackerapi.services.AuthService;
 import org.esercizi.expensetrackerapi.services.EmailService;
 import org.esercizi.expensetrackerapi.services.PasswordResetService;
@@ -107,6 +111,10 @@ public class AuthController {
         }
     }
 
+    @ApiResponse(responseCode = "401", description = "Credenziali non valide (INVALID_CREDENTIALS)",
+            content = @Content(schema = @Schema(implementation = APIError.class)))
+    @ApiResponse(responseCode = "403", description = "Email non ancora verificata (EMAIL_NOT_VERIFIED)",
+            content = @Content(schema = @Schema(implementation = APIError.class)))
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest loginRequest
@@ -127,6 +135,8 @@ public class AuthController {
 
     }
 
+    @ApiResponse(responseCode = "401", description = "Cookie di refresh mancante, scaduto o revocato (INVALID_REFRESH_TOKEN)",
+            content = @Content(schema = @Schema(implementation = APIError.class)))
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(name = "refresh_token", required = false) String refreshToken
@@ -148,6 +158,9 @@ public class AuthController {
 
     }
 
+    @ApiResponse(responseCode = "401",
+            description = "Cookie di refresh mancante, scaduto o revocato (INVALID_REFRESH_TOKEN). Il riuso di un token già ruotato chiude tutte le sessioni dell'utente",
+            content = @Content(schema = @Schema(implementation = APIError.class)))
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(
             @CookieValue(name = "refresh_token", required = false) String refreshToken
