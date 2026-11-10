@@ -7,7 +7,7 @@
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
-**Versione corrente: 1.1.0 — aggiornamento del 10 novembre 2026.**
+**Versione corrente: 1.1.0 — aggiornamento del 10 novembre 2026.** Frontend compatibile: **1.1.0**.
 
 Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e funzionalità future da gestire con nuove versioni. Il progetto resta una demo portfolio, con limiti e verifiche residue dichiarati sotto.
 
@@ -295,12 +295,15 @@ Il backend risponde su `http://localhost:8080`; arrestarlo con `Ctrl+C`. `FRONTE
 
 ## Verifiche e limiti
 
-Verifiche del **25 ottobre 2026**:
+Verifiche del **25 ottobre 2026**, con le righe del **10 novembre 2026** per la versione 1.1.0:
 
 | Verifica | Esito |
 | --- | --- |
+| CI GitHub Actions su master, versione 1.1.0 (10 novembre) | Riuscita |
+| Suite Angular, frontend 1.1.0 (10 novembre) | 87 test passati |
+| Build Angular production, frontend 1.1.0 (10 novembre) | Riuscita; restano gli avvisi di budget |
 | Suite backend completa, Java 21.0.13 e MySQL 8.0.46 temporaneo | 14 test passati, zero fallimenti/errori/skipped |
-| Suite Angular | 62 test passati |
+| Suite Angular (25 ottobre) | 62 test passati |
 | Build Angular production | Riuscita; avvisi budget iniziale e CSS login/dashboard |
 | Registrazione online con email reale | Confermata dal proprietario |
 | Caricamento delle nuove liste online | Confermato dal proprietario |
@@ -313,7 +316,7 @@ Restano aperti il controllo visivo sistematico desktop/mobile nei due temi, il p
 
 ## Versioning e manutenzione
 
-Prima versione funzionalmente conclusa: **1.0.0**, riferimento **25 ottobre 2026**. POM e nome JAR nel Dockerfile sono allineati; il cambio dei manifest non crea automaticamente un tag Git o una GitHub Release.
+Prima versione funzionalmente conclusa: **1.0.0**, riferimento **25 ottobre 2026**. Versioni correnti: backend **1.1.0**, frontend **1.1.0**. POM e nome JAR nel Dockerfile sono allineati; il cambio dei manifest non crea automaticamente un tag Git o una GitHub Release.
 
 - **PATCH** (`1.0.1`): correzioni compatibili e manutenzione/refactoring senza cambiare il contratto pubblico.
 - **MINOR** (`1.1.0`): nuove funzionalità compatibili.
