@@ -121,6 +121,17 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(InvalidPasswordResetTokenException.class)
+    public ResponseEntity<APIError> handleInvalidPasswordResetToken(
+            InvalidPasswordResetTokenException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(new APIError(
+                "INVALID_PASSWORD_RESET_TOKEN", exception.getMessage(),
+                request.getRequestURI(), Instant.now(), status));
+    }
+
     @ExceptionHandler(EmailNotVerifiedException.class)
     public ResponseEntity<APIError> handleEmailNotVerifiedException(
             EmailNotVerifiedException exception,

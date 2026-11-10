@@ -9,10 +9,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.esercizi.expensetrackerapi.dto.login.AccessAndRefresh;
 import org.esercizi.expensetrackerapi.dto.login.AuthResponse;
 import org.esercizi.expensetrackerapi.dto.login.LoginRequest;
+import org.esercizi.expensetrackerapi.dto.login.ForgotPasswordRequest;
 import org.esercizi.expensetrackerapi.dto.login.RegistrationResponse;
+import org.esercizi.expensetrackerapi.dto.login.ResendVerificationRequest;
+import org.esercizi.expensetrackerapi.dto.login.ResetPasswordRequest;
 import org.esercizi.expensetrackerapi.dto.user.UserCreateRequest;
 import org.esercizi.expensetrackerapi.services.AuthService;
 import org.esercizi.expensetrackerapi.services.EmailService;
+import org.esercizi.expensetrackerapi.services.PasswordResetService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -30,6 +34,7 @@ import java.time.Duration;
 public class AuthController {
     private final AuthService authService;
     private final EmailService emailService;
+    private final PasswordResetService passwordResetService;
     @Value("${app.cookie-secure:false}")
     private boolean cookieSecure;
     @Value("${app.cookie-same-site:Strict}")
@@ -66,6 +71,35 @@ public class AuthController {
         return ResponseEntity
                 .noContent()
                 .build();
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Void> resendVerification(
+            @Valid @RequestBody ResendVerificationRequest request
+    ) throws NoSuchAlgorithmException {
+        requireMailEnabled();
+        authService.resendVerification(request.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        requireMailEnabled();
+        passwordResetService.requestReset(request.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
+    private void requireMailEnabled() {
+        if (!registrationEnabled) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Invio email non disponibile nella demo");
+        }
     }
 
     @PostMapping("/login")

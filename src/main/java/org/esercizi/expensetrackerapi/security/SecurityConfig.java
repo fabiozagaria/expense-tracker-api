@@ -77,7 +77,10 @@ public class SecurityConfig {
                                                 "/auth/register",
                                                 "/auth/refresh",
                                                 "/auth/logout",
-                                                "/auth/verify-email"
+                                                "/auth/verify-email",
+                                                "/auth/resend-verification",
+                                                "/auth/forgot-password",
+                                                "/auth/reset-password"
                                         ).permitAll()
                                         .requestMatchers(HttpMethod.GET, "/health").permitAll()
                                 .anyRequest().authenticated()

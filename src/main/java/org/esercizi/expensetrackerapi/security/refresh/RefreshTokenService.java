@@ -84,6 +84,10 @@ public class RefreshTokenService {
             throw new InvalidRefreshTokenException("Token revoked");
     }
 
+    public void revokeAllFor(User user) {
+        refreshTokenRepository.revokeAllActiveByUser(user, Instant.now());
+    }
+
     private String hashToken(String rawRefresh) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         byte[] hashBytes = messageDigest.digest(
