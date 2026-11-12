@@ -4,6 +4,10 @@
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
 ![Stato](https://img.shields.io/badge/perimetro_funzionale-completato-success)
+![Demo](https://img.shields.io/badge/demo_online-sospesa-orange)
+
+> [!WARNING]
+> **Demo online sospesa (aggiornamento del 12 novembre 2026).** Il database MySQL della demo, ospitato su Aiven, non è più disponibile perché il provider ha ritirato il piano gratuito: l'istanza su Render non riesce a collegarsi al database e si riavvia in continuazione. Il ripristino è previsto entro 24–48 ore; se cambia, questo avviso viene aggiornato. Il codice del progetto non è interessato e resta avviabile in locale con Docker Compose: vedi le istruzioni di avvio più sotto.
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
@@ -160,7 +164,7 @@ Basta eseguire `POST /auth/demo` (Try it out, Execute), copiare l'`accessToken` 
 | Email online | Brevo via HTTPS; registrazione abilitata |
 | Proxy | Vercel inoltra `/health`, `/auth/*` e `/api/*` a Render |
 
-Il servizio Render esistente segue `demo/render-aiven-setup`, allineato al merge funzionale di `master` il 25 ottobre 2026. Il Blueprint versionato indica invece `master`: un commit sul solo `master` non prova che il servizio esistente sia aggiornato.
+Il Blueprint versionato indica `master`, e dallo storico dei deploy Render del 12 novembre 2026 risulta Auto-Deploy dei commit di `master` (merge `40dbcc7`, messo online il 10 novembre). Il deploy del successivo commit solo documentale `d4e5aca` è fallito per timeout, perché dal 10 novembre sera l'istanza non si collega più al database.
 
 Variabili principali del deploy: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SECRET_KEY`, `DEMO_PASSWORD`, `SPRING_PROFILES_ACTIVE=demo`, `FRONTEND_URL=https://gestionale-spese.vercel.app`, `MAIL_PROVIDER=brevo`, `BREVO_API_KEY`, `MAIL_FROM` e `REGISTRATION_ENABLED=true`. La CA Aiven viene fornita con `AIVEN_CA_CERT` o secret file: vedere [deploy](docs/DEPLOYMENT.md). Segreti esclusivamente nell'ambiente.
 
