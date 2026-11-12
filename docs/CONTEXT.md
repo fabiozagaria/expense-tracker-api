@@ -1,14 +1,16 @@
 # Contesto tecnico — Gestionale Spese Backend
 
-## Stato corrente — 10 novembre 2026
+## Stato corrente — 12 novembre 2026
 
 **Versione corrente 1.2.0** (frontend compatibile 1.2.0). Questa sezione e il README descrivono lo stato attuale; le note successive conservano la cronologia e possono descrivere stati superati.
 
-- Frontend Vercel e backend Render con MySQL Aiven/TLS; registrazione online e Brevo HTTPS attivi.
+- **Servizio online sospeso dal 12 novembre 2026.** Il database MySQL Aiven della demo (`mysql-177ce756…`) risulta spento, senza il pulsante «Power on» nella console, e il provider ha ritirato il piano gratuito MySQL (nessuna nuova istanza free dal 6 novembre; cancellazione di quelle rimaste il 21 dicembre 2026, secondo la documentazione Aiven letta tramite ricerca, non verificata sulle pagine ufficiali). Il log Render mostra `UnknownHostException: …aivencloud.com: Name or service not known` e `Communications link failure` al primo accesso di Flyway: l'app parte (1.2.0, profilo `demo`), poi esce con codice 1 e Render la riavvia ogni 2–3 minuti. Il deploy `d4e5aca` (solo documentazione, identico nel codice a `40dbcc7`) è fallito per timeout il 10 novembre alle 19:58. Strade valutate: piano Developer Aiven (circa 5 dollari al mese, stessi dati e stesso host), un altro MySQL gratuito (non verificato), PostgreSQL (richiede di cambiare migrazioni e driver), oppure demo spenta. Ripristino previsto dal proprietario entro 24–48 ore, non garantito.
+- Il frontend mostra un avviso fisso (`environment.maintenance`) finché il servizio non torna.
+- Frontend Vercel e backend Render con MySQL Aiven/TLS; registrazione online e Brevo HTTPS attivi fino al 10 novembre 2026.
 - Novità 1.2.0, retrocompatibile: `GET /api/me` restituisce `{ username, email }` dell'utente del token (nessun altro campo, mai la password). Serve alla pagina Impostazioni del frontend per inviare il link di cambio password con l'email dell'account. `SecurityConfig` invariato: la rotta è protetta da `anyRequest().authenticated()`.
 - Dalla 1.1.0: reinvio della verifica email, reset password, password fino a 72 byte UTF-8, rate limiting per IP sulle POST pubbliche di `/auth` (429 `RATE_LIMITED` con `Retry-After`), reuse detection dei refresh token, errori in formato `APIError`, elenchi array limitati a 1000 elementi (`X-Result-Truncated`), Flyway, Swagger UI, Testcontainers e CI su GitHub Actions.
 - Suite backend completa il 10 novembre 2026: 122 test passati, zero fallimenti, con Java 21 e MySQL 8.0 Testcontainers.
-- Il percorso reale Impostazioni → email → nuova password → login è stato provato dal proprietario sul sito pubblico il 10 novembre 2026 con un'email vera e funziona: la 1.2.0 con `GET /api/me` è quindi online sul servizio pubblico (render.yaml indica master; il servizio esistente seguiva demo/render-aiven-setup).
+- Il percorso reale Impostazioni → email → nuova password → login è stato provato dal proprietario sul sito pubblico il 10 novembre 2026 con un'email vera e funziona: la 1.2.0 con `GET /api/me` è quindi online sul servizio pubblico (render.yaml indica master e lo storico dei deploy Render mostra Auto-Deploy dei commit di master).
 - POM e nome JAR allineati a 1.2.0. Il cambio dei manifest non crea da solo un tag Git o una GitHub Release.
 - Il proprietario ha dichiarato il progetto concluso (10 novembre 2026). Unica idea futura, rinviata e a suo carico: eliminazione dell'account (vedi `FUTURE.md`).
 
