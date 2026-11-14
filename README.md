@@ -7,7 +7,7 @@
 ![Demo](https://img.shields.io/badge/demo_online-sospesa-orange)
 
 > [!WARNING]
-> **Demo online sospesa (aggiornamento del 12 novembre 2026).** Il database MySQL della demo, ospitato su Aiven, non è più disponibile perché il provider ha ritirato il piano gratuito: l'istanza su Render non riesce a collegarsi al database e si riavvia in continuazione. Il ripristino è previsto entro 24–48 ore; se cambia, questo avviso viene aggiornato. Il codice del progetto non è interessato e resta avviabile in locale con Docker Compose: vedi le istruzioni di avvio più sotto.
+> **Demo online sospesa (aggiornamento del 14 novembre 2026).** Il database MySQL della demo, ospitato su Aiven, non è più disponibile perché il provider ha ritirato il piano gratuito: l'istanza su Render non riesce a collegarsi al database e si riavvia in continuazione. Non c'è una data di ripristino: la demo resta spenta finché non sarà disponibile un database. Il codice del progetto non è interessato e resta avviabile in locale con Docker Compose: vedi le istruzioni di avvio più sotto.
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
