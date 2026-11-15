@@ -1,8 +1,10 @@
 #!/bin/sh
 set -eu
 
-# Aiven's CA is public; database credentials must remain in environment variables.
-if [ "${SPRING_PROFILES_ACTIVE:-}" = "demo" ]; then
+# Il profilo "demo" usa H2 in memoria e non ha bisogno di certificati. Il profilo "aiven"
+# (SPRING_PROFILES_ACTIVE=demo,aiven) punta a un MySQL esterno: la CA di Aiven è pubblica,
+# le credenziali del database restano nelle variabili d'ambiente.
+case ",${SPRING_PROFILES_ACTIVE:-}," in *,aiven,*)
   ca_file=/etc/secrets/aiven-ca.pem
   if [ -n "${AIVEN_CA_CERT:-}" ]; then
     ca_file=/tmp/aiven-ca.pem
@@ -12,5 +14,6 @@ if [ "${SPRING_PROFILES_ACTIVE:-}" = "demo" ]; then
   rm -f /tmp/aiven-truststore.p12
   keytool -importcert -noprompt -alias aiven -file "$ca_file" \
     -keystore /tmp/aiven-truststore.p12 -storetype PKCS12 -storepass changeit
-fi
+  ;;
+esac
 exec java -jar /app/app.jar

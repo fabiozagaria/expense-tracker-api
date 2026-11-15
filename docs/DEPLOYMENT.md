@@ -1,4 +1,4 @@
-# Demo portfolio: Render + Aiven + Vercel
+# Demo portfolio: Render + Vercel (database H2 in memoria; Aiven opzionale)
 
 ## Stato corrente — 12 novembre 2026
 
@@ -20,10 +20,10 @@ Demo pubblicata; le verifiche storiche sono riportate sotto con la relativa data
 
 ## Backend
 
-1. Creare un database Aiven MySQL sul piano Free, verificando disponibilità e limiti nell'account. Usare un database dedicato alla demo, senza dati personali.
-2. Configurare il certificato CA pubblico fornito da Aiven nella variabile Render `AIVEN_CA_CERT`, oppure come secret file `aiven-ca.pem` (montato in `/etc/secrets/aiven-ca.pem`). L'entrypoint crea un truststore temporaneo; Connector/J verifica CA e hostname con `VERIFY_IDENTITY`.
-3. Il Blueprint `render.yaml` usa soltanto un web service Docker Free. Impostare `DB_URL` nel formato `jdbc:mysql://HOST:PORT/defaultdb` (senza parametri che disabilitano TLS), `DB_USERNAME` e `DB_PASSWORD`. Render genera `SECRET_KEY` e `DEMO_PASSWORD`. Non copiare i segreti nel repository.
-4. Il profilo `demo` disabilita per default la registrazione e crea un account USER verificato e dati fittizi solo alla prima inizializzazione. Ai riavvii aggiorna la password demo ma conserva i dati. Non usare questo profilo su un database personale o di produzione.
+1. Dal 15 novembre 2026 il profilo `demo` usa un database H2 in memoria: nessun database esterno e nessun costo. Lo schema lo crea Hibernate all'avvio (Flyway è spento, le migrazioni sono per MySQL) e `DemoDataInitializer` ricrea l'account USER verificato con i dati fittizi. I dati aggiunti dai visitatori si perdono al riavvio del servizio (Render Free si spegne dopo circa 15 minuti di inattività).
+2. Il Blueprint `render.yaml` usa un web service Docker Free e un Key Value Free per la cache. Render genera `SECRET_KEY` e `DEMO_PASSWORD`. Non copiare i segreti nel repository. `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e `AIVEN_CA_CERT` non servono più e si possono togliere dal servizio.
+3. La registrazione è chiusa nel profilo `demo` anche se `REGISTRATION_ENABLED=true` è ancora impostata: con un database in memoria gli account sparirebbero al riavvio.
+4. Per usare di nuovo un MySQL esterno (Aiven o altro): `SPRING_PROFILES_ACTIVE=demo,aiven`, `DB_URL` nel formato `jdbc:mysql://HOST:PORT/defaultdb` (senza parametri che disabilitano TLS), `DB_USERNAME`, `DB_PASSWORD` e il certificato CA in `AIVEN_CA_CERT` o come secret file `aiven-ca.pem` (in `/etc/secrets/aiven-ca.pem`). L'entrypoint crea un truststore temporaneo e Connector/J verifica CA e hostname con `VERIFY_IDENTITY`; Flyway e `ddl-auto=validate` tornano attivi e la registrazione segue `REGISTRATION_ENABLED`. Non usare il profilo `demo` su un database personale o di produzione.
 5. `GET /health` indica che il processo HTTP è avviato; non certifica la disponibilità del database. Controllare anche un login demo e una lettura dati.
 
 ## Frontend

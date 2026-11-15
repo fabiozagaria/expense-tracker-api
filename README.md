@@ -55,7 +55,7 @@ Il controller gestisce HTTP e validazione del DTO; il service applica le regole 
 | `src/main/resources/` | Configurazione base e profilo `demo` |
 | `src/test/java/` | Test unitari, trasporto email e integrazione con MySQL |
 | `docker-compose.yaml` | API, MySQL 8.0 e Mailpit locali |
-| `Dockerfile`, `docker-entrypoint.sh` | Build Java 21 e truststore Aiven per il deploy |
+| `Dockerfile`, `docker-entrypoint.sh` | Build Java 21 e truststore Aiven (solo col profilo `aiven`) |
 | `render.yaml` | Blueprint Render, configurato per `master` |
 | `docs/CONTEXT.md`, `docs/DEPLOYMENT.md` | Contesto tecnico e dettagli/storia delle verifiche |
 
@@ -160,15 +160,15 @@ Basta eseguire `POST /auth/demo` (Try it out, Execute), copiare l'`accessToken` 
 | --- | --- |
 | Frontend | Vercel: `https://gestionale-spese.vercel.app` |
 | Backend | Render: `expense-tracker-api-demo`, profilo `demo` |
-| Database | MySQL Aiven, TLS con verifica CA e hostname |
+| Database | H2 in memoria (profilo `demo`); MySQL Aiven con TLS solo col profilo `aiven` |
 | Email online | Brevo via HTTPS; registrazione abilitata |
 | Proxy | Vercel inoltra `/health`, `/auth/*` e `/api/*` a Render |
 
 Il Blueprint versionato indica `master`, e dallo storico dei deploy Render del 12 novembre 2026 risulta Auto-Deploy dei commit di `master` (merge `40dbcc7`, messo online il 10 novembre). Il deploy del successivo commit solo documentale `d4e5aca` è fallito per timeout, perché dal 10 novembre sera l'istanza non si collega più al database.
 
-Variabili principali del deploy: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SECRET_KEY`, `DEMO_PASSWORD`, `SPRING_PROFILES_ACTIVE=demo`, `FRONTEND_URL=https://gestionale-spese.vercel.app`, `MAIL_PROVIDER=brevo`, `BREVO_API_KEY`, `MAIL_FROM` e `REGISTRATION_ENABLED=true`. La CA Aiven viene fornita con `AIVEN_CA_CERT` o secret file: vedere [deploy](docs/DEPLOYMENT.md). Segreti esclusivamente nell'ambiente.
+Variabili principali del deploy: `SECRET_KEY`, `DEMO_PASSWORD`, `SPRING_PROFILES_ACTIVE=demo`, `FRONTEND_URL=https://gestionale-spese.vercel.app`, `MAIL_PROVIDER=brevo`, `BREVO_API_KEY`, `MAIL_FROM` e `REGISTRATION_ENABLED=true`. Per puntare la demo a un MySQL esterno si aggiungono il profilo `aiven` (`SPRING_PROFILES_ACTIVE=demo,aiven`), `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e la CA con `AIVEN_CA_CERT` o secret file: vedere [deploy](docs/DEPLOYMENT.md). Segreti esclusivamente nell'ambiente.
 
-Il profilo demo mantiene la registrazione disabilitata come default; il deploy la abilita esplicitamente. Il pulsante **Prova la demo** usa un account condiviso: usare dati fittizi. Gli account personali restano separati tramite i controlli del backend. Render può richiedere un'attesa al risveglio; `/health` conferma HTTP, non tutte le dipendenze.
+Il profilo demo usa un database H2 in memoria: lo schema e l'account condiviso con i dati di esempio vengono ricreati a ogni avvio, e quello che i visitatori aggiungono si perde al riavvio del servizio. Per questo la registrazione resta chiusa anche se `REGISTRATION_ENABLED=true` è ancora impostata (la riapre il profilo `aiven`). Il pulsante **Prova la demo** usa un account condiviso: usare dati fittizi. Gli account personali restano separati tramite i controlli del backend. Render può richiedere un'attesa al risveglio; `/health` conferma HTTP, non tutte le dipendenze.
 
 ## Avvio da un clone pulito
 
