@@ -28,9 +28,3 @@ services:
           type: keyvalue
           name: expense-tracker-cache
           property: connectionString
-      - key: DB_URL
-        sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
-        sync: false

@@ -14,10 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = {
-        "app.demo-password=test-only-demo-password-1234",
-        "spring.datasource.hikari.data-source-properties.sslMode=DISABLED"
-})
+@SpringBootTest(properties = "app.demo-password=test-only-demo-password-1234")
 @ActiveProfiles("demo")
 @AutoConfigureMockMvc
 @Transactional

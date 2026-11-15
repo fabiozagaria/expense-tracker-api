@@ -3,6 +3,7 @@ package org.esercizi.expensetrackerapi.support;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Profiles;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.testcontainers.mysql.MySQLContainer;
 
@@ -16,20 +17,26 @@ import org.testcontainers.mysql.MySQLContainer;
  */
 public class MySqlTestContainerInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
-    private static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.0");
+    /** Avviato al primo uso: i contesti col profilo demo (H2 in memoria) non ne hanno bisogno. */
+    private static final class Holder {
+        static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.0");
 
-    static {
-        MYSQL.start();
+        static {
+            MYSQL.start();
+        }
     }
 
     @Override
     public void initialize(ConfigurableApplicationContext context) {
-        TestPropertyValues.of(
-                "spring.datasource.url=" + MYSQL.getJdbcUrl(),
-                "spring.datasource.username=" + MYSQL.getUsername(),
-                "spring.datasource.password=" + MYSQL.getPassword(),
-                "jwt.secret=test-only-secret-key-that-is-at-least-32-bytes-long"
-        ).applyTo(context);
+        // Il profilo demo usa H2 in memoria (application-demo.properties): lì il datasource non si tocca.
+        if (!context.getEnvironment().acceptsProfiles(Profiles.of("demo"))) {
+            TestPropertyValues.of(
+                    "spring.datasource.url=" + Holder.MYSQL.getJdbcUrl(),
+                    "spring.datasource.username=" + Holder.MYSQL.getUsername(),
+                    "spring.datasource.password=" + Holder.MYSQL.getPassword()
+            ).applyTo(context);
+        }
+        TestPropertyValues.of("jwt.secret=test-only-secret-key-that-is-at-least-32-bytes-long").applyTo(context);
         // Tutti i test chiamano /auth/login dallo stesso "IP" (127.0.0.1) molte volte al minuto: il limite
         // è spento di default. Chi lo vuole provare lo accende con @SpringBootTest(properties = ...):
         // si guarda solo la sorgente delle proprietà inline, perché application.properties lo definisce già.
