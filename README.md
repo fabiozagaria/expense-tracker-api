@@ -4,10 +4,9 @@
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
 ![Stato](https://img.shields.io/badge/perimetro_funzionale-completato-success)
-![Demo](https://img.shields.io/badge/demo_online-sospesa-orange)
 
-> [!WARNING]
-> **Demo online sospesa (aggiornamento del 14 novembre 2026).** Il database MySQL della demo, ospitato su Aiven, non è più disponibile perché il provider ha ritirato il piano gratuito: l'istanza su Render non riesce a collegarsi al database e si riavvia in continuazione. Non c'è una data di ripristino: la demo resta spenta finché non sarà disponibile un database. Il codice del progetto non è interessato e resta avviabile in locale con Docker Compose: vedi le istruzioni di avvio più sotto.
+> [!NOTE]
+> **Demo online ripristinata (15 novembre 2026).** Il database MySQL Aiven non è più disponibile, quindi la demo gira con un database H2 in memoria: l'account condiviso e i dati di esempio vengono ricreati a ogni avvio, quello che i visitatori aggiungono si perde quando il servizio si riavvia e la registrazione è chiusa. Il codice del progetto resta avviabile in locale con MySQL e Docker Compose: vedi le istruzioni di avvio più sotto.
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
