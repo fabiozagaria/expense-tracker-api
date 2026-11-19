@@ -1,10 +1,12 @@
 # Roadmap — Expense Tracker API
 
-Aggiornato il 10 novembre 2026.
+Aggiornato il 19 novembre 2026.
 
 ## Stato attuale
 
 La versione **1.2.0** completa il perimetro funzionale attuale: il progetto è concluso. L'API offre il CRUD di spese ed entrate, ricerca con filtri e paginazione, riepilogo finanziario e isolamento dei dati per utente. L'autenticazione include verifica email, recupero password, rinnovo della sessione e logout. `GET /api/me` restituisce username ed email dell'utente autenticato, usati dalla pagina Impostazioni del frontend.
+
+La versione **1.3.0** (19 novembre 2026) non aggiunge funzionalità: sposta il database da MySQL a PostgreSQL, con il profilo `neon` per la demo persistente.
 
 Per il contratto REST e i dettagli tecnici, consulta il [README](README.md) e il [contesto tecnico](docs/CONTEXT.md).
 
