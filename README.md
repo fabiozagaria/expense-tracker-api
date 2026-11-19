@@ -1,6 +1,6 @@
 # Gestionale Spese — Backend API
 
-![Versione](https://img.shields.io/badge/versione-1.2.0-blue)
+![Versione](https://img.shields.io/badge/versione-1.3.0-blue)
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1-green)
 ![Stato](https://img.shields.io/badge/perimetro_funzionale-completato-success)
@@ -10,7 +10,7 @@
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
-**Versione corrente: 1.2.0 — aggiornamento del 10 novembre 2026.** Frontend compatibile: **1.2.0**.
+**Versione corrente: 1.3.0 — aggiornamento del 19 novembre 2026.** Frontend compatibile: **1.2.0**.
 
 Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e funzionalità future da gestire con nuove versioni. Il progetto resta una demo portfolio, con limiti e verifiche residue dichiarati sotto.
 
@@ -18,6 +18,8 @@ Il perimetro funzionale è completato, salvo correzioni di bug, refactoring e fu
 - [Frontend Angular](https://github.com/fabiozagaria/expense-tracker-angular)
 - [Health backend](https://expense-tracker-api-demo-plb9.onrender.com/health)
 - [Portfolio di Fabio Zagaria](https://fabio-zagaria-portfolio.vercel.app/)
+
+Versione 1.3.0 (contratto REST invariato): il database passa da MySQL a PostgreSQL. Migrazione Flyway unica `V1__initial_schema.sql`, username ed email unici senza distinguere maiuscole e minuscole, Testcontainers e Docker Compose su PostgreSQL, profilo `neon` per un database PostgreSQL su Neon al posto del profilo `aiven`. Finché su Render non si attiva il profilo `neon`, la demo online resta su H2 in memoria.
 
 Versione 1.2.0 (retrocompatibile): nuovo `GET /api/me` con username ed email dell'utente autenticato, usato dalla pagina Impostazioni del frontend per inviare il link di cambio password senza riscrivere l'email.
 
@@ -321,7 +323,7 @@ Restano aperti il controllo visivo sistematico desktop/mobile nei due temi, il p
 
 ## Versioning e manutenzione
 
-Prima versione funzionalmente conclusa: **1.0.0**, riferimento **25 ottobre 2026**. Versioni correnti: backend **1.2.0**, frontend **1.2.0**. POM e nome JAR nel Dockerfile sono allineati; il cambio dei manifest non crea automaticamente un tag Git o una GitHub Release.
+Prima versione funzionalmente conclusa: **1.0.0**, riferimento **25 ottobre 2026**. Versioni correnti: backend **1.3.0**, frontend **1.2.0**. POM e nome JAR nel Dockerfile sono allineati; il cambio dei manifest non crea automaticamente un tag Git o una GitHub Release.
 
 - **PATCH** (`1.0.1`): correzioni compatibili e manutenzione/refactoring senza cambiare il contratto pubblico.
 - **MINOR** (`1.1.0`): nuove funzionalità compatibili.
