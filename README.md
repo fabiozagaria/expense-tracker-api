@@ -56,6 +56,7 @@ Il controller gestisce HTTP e validazione del DTO; il service applica le regole 
 | `docker-compose.yaml` | API, PostgreSQL 17, Redis e Mailpit locali |
 | `Dockerfile`, `docker-entrypoint.sh` | Build e avvio Java 21 |
 | `render.yaml` | Blueprint Render, configurato per `master` |
+| `neon.ts`, `package.json` | Configurazione Neon come codice, letta dalla CLI `neon` (non entra nella build Java) |
 | `docs/CONTEXT.md`, `docs/DEPLOYMENT.md` | Contesto tecnico e dettagli/storia delle verifiche |
 
 Spese ed entrate hanno ID `Long`, titolo, importo positivo `BigDecimal`, descrizione facoltativa, categoria enum, data `LocalDate` e proprietario. Titolo: 3–15 caratteri; descrizione: massimo 30; data odierna o passata. Le categorie dei due domini sono distinte.
