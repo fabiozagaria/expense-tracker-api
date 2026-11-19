@@ -6,7 +6,7 @@
 ![Stato](https://img.shields.io/badge/perimetro_funzionale-completato-success)
 
 > [!NOTE]
-> **Demo online ripristinata (15 novembre 2026).** Il database MySQL Aiven non è più disponibile, quindi la demo gira con un database H2 in memoria: l'account condiviso e i dati di esempio vengono ricreati a ogni avvio, quello che i visitatori aggiungono si perde quando il servizio si riavvia e la registrazione è chiusa. Il codice del progetto resta avviabile in locale con MySQL e Docker Compose: vedi le istruzioni di avvio più sotto.
+> **Database: PostgreSQL (19 novembre 2026).** Il progetto è passato da MySQL a PostgreSQL per poter usare Neon, che offre un piano gratuito. Finché su Render non viene attivato il profilo `neon`, la demo gira ancora con un database H2 in memoria: l'account condiviso e i dati di esempio vengono ricreati a ogni avvio, quello che i visitatori aggiungono si perde quando il servizio si riavvia e la registrazione è chiusa. In locale il progetto si avvia con PostgreSQL e Docker Compose: vedi le istruzioni di avvio più sotto.
 
 Backend del progetto full stack **Gestionale Spese**: autenticazione con verifica email, gestione delle spese e delle entrate personali, ricerca paginata e riepilogo finanziario.
 
@@ -37,7 +37,7 @@ Versione 1.0.2: introdotto MapStruct per mappare request, entity e response di s
 
 ## Architettura e struttura
 
-Spring Boot 4.1, Java 21, Spring MVC, Spring Security OAuth2 Resource Server, Spring Data JPA/Hibernate, MySQL, Lombok e Maven Wrapper.
+Spring Boot 4.1, Java 21, Spring MVC, Spring Security OAuth2 Resource Server, Spring Data JPA/Hibernate, PostgreSQL, Flyway, Lombok e Maven Wrapper.
 
 Il controller gestisce HTTP e validazione del DTO; il service applica le regole e i confini transazionali; repository ed EntityManager gestiscono la persistenza. L'identità del proprietario deriva dal principal autenticato, non dal payload del client.
 
@@ -51,10 +51,10 @@ Il controller gestisce HTTP e validazione del DTO; il service applica le regole 
 | `dto/` | Richieste, risposte e contratto stabile `MovementPage` |
 | `security/` | Configurazione Security, JWT, refresh e controllo Origin |
 | `exceptions/` | Eccezioni applicative, `GlobalExceptionHandler` e `APIError` |
-| `src/main/resources/` | Configurazione base e profilo `demo` |
-| `src/test/java/` | Test unitari, trasporto email e integrazione con MySQL |
-| `docker-compose.yaml` | API, MySQL 8.0 e Mailpit locali |
-| `Dockerfile`, `docker-entrypoint.sh` | Build Java 21 e truststore Aiven (solo col profilo `aiven`) |
+| `src/main/resources/` | Configurazione base, profili `demo` e `neon`, migrazioni Flyway |
+| `src/test/java/` | Test unitari, trasporto email e integrazione con PostgreSQL |
+| `docker-compose.yaml` | API, PostgreSQL 17, Redis e Mailpit locali |
+| `Dockerfile`, `docker-entrypoint.sh` | Build e avvio Java 21 |
 | `render.yaml` | Blueprint Render, configurato per `master` |
 | `docs/CONTEXT.md`, `docs/DEPLOYMENT.md` | Contesto tecnico e dettagli/storia delle verifiche |
 
@@ -78,7 +78,7 @@ Per entrambi i prefissi `/api/expenses` e `/api/incomes`:
 
 ### Cache Redis delle spese
 
-`GET /api/expenses` resta disponibile. Le risposte dell'elenco e di `/api/expenses/search` sono memorizzate in Redis per due minuti, separate per proprietario e parametri di ricerca. Le scritture invalidate dopo il commit riguardano solo il proprietario modificato. In caso di errore Redis le letture usano MySQL; un errore di invalidazione viene registrato e i dati in cache scadono entro due minuti. Le letture simultanee a una scrittura possono ancora osservare una risposta precedente fino alla scadenza: la cache non garantisce consistenza forte.
+`GET /api/expenses` resta disponibile. Le risposte dell'elenco e di `/api/expenses/search` sono memorizzate in Redis per due minuti, separate per proprietario e parametri di ricerca. Le scritture invalidate dopo il commit riguardano solo il proprietario modificato. In caso di errore Redis le letture vanno al database; un errore di invalidazione viene registrato e i dati in cache scadono entro due minuti. Le letture simultanee a una scrittura possono ancora osservare una risposta precedente fino alla scadenza: la cache non garantisce consistenza forte.
 
 Docker Compose include Redis senza esporne la porta sull'host. Fuori da Compose impostare `REDIS_URL` con l'URL di un Redis privato (oppure `rediss://` con TLS). `EXPENSE_CACHE_ENABLED=false` disattiva la cache. Il Blueprint `render.yaml` dichiara un Render Key Value gratuito (`expense-tracker-cache`, Francoforte, solo connessioni interne) e ne passa l'URL al backend come `REDIS_URL`. Il Blueprint non crea nulla finché non viene sincronizzato su Render; il servizio esistente va collegato o aggiornato a mano.
 
@@ -159,15 +159,15 @@ Basta eseguire `POST /auth/demo` (Try it out, Execute), copiare l'`accessToken` 
 | --- | --- |
 | Frontend | Vercel: `https://gestionale-spese.vercel.app` |
 | Backend | Render: `expense-tracker-api-demo`, profilo `demo` |
-| Database | H2 in memoria (profilo `demo`); MySQL Aiven con TLS solo col profilo `aiven` |
+| Database | H2 in memoria (profilo `demo`); PostgreSQL su Neon con TLS verificato col profilo `neon` (`demo,neon`) |
 | Email online | Brevo via HTTPS; registrazione abilitata |
 | Proxy | Vercel inoltra `/health`, `/auth/*` e `/api/*` a Render |
 
 Il Blueprint versionato indica `master`, e dallo storico dei deploy Render del 12 novembre 2026 risulta Auto-Deploy dei commit di `master` (merge `40dbcc7`, messo online il 10 novembre). Il deploy del successivo commit solo documentale `d4e5aca` è fallito per timeout, perché dal 10 novembre sera l'istanza non si collega più al database.
 
-Variabili principali del deploy: `SECRET_KEY`, `DEMO_PASSWORD`, `SPRING_PROFILES_ACTIVE=demo`, `FRONTEND_URL=https://gestionale-spese.vercel.app`, `MAIL_PROVIDER=brevo`, `BREVO_API_KEY`, `MAIL_FROM` e `REGISTRATION_ENABLED=true`. Per puntare la demo a un MySQL esterno si aggiungono il profilo `aiven` (`SPRING_PROFILES_ACTIVE=demo,aiven`), `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e la CA con `AIVEN_CA_CERT` o secret file: vedere [deploy](docs/DEPLOYMENT.md). Segreti esclusivamente nell'ambiente.
+Variabili principali del deploy: `SECRET_KEY`, `DEMO_PASSWORD`, `SPRING_PROFILES_ACTIVE=demo`, `FRONTEND_URL=https://gestionale-spese.vercel.app`, `MAIL_PROVIDER=brevo`, `BREVO_API_KEY`, `MAIL_FROM` e `REGISTRATION_ENABLED=true`. Per puntare la demo a Neon si aggiungono il profilo `neon` (`SPRING_PROFILES_ACTIVE=demo,neon`), `DB_URL` (endpoint diretto, senza `-pooler`), `DB_USERNAME` e `DB_PASSWORD`: vedere [deploy](docs/DEPLOYMENT.md). Segreti esclusivamente nell'ambiente.
 
-Il profilo demo usa un database H2 in memoria: lo schema e l'account condiviso con i dati di esempio vengono ricreati a ogni avvio, e quello che i visitatori aggiungono si perde al riavvio del servizio. Per questo la registrazione resta chiusa anche se `REGISTRATION_ENABLED=true` è ancora impostata (la riapre il profilo `aiven`). Il pulsante **Prova la demo** usa un account condiviso: usare dati fittizi. Gli account personali restano separati tramite i controlli del backend. Render può richiedere un'attesa al risveglio; `/health` conferma HTTP, non tutte le dipendenze.
+Il profilo demo usa un database H2 in memoria: lo schema e l'account condiviso con i dati di esempio vengono ricreati a ogni avvio, e quello che i visitatori aggiungono si perde al riavvio del servizio. Per questo la registrazione resta chiusa anche se `REGISTRATION_ENABLED=true` è ancora impostata (la riapre il profilo `neon`). Il pulsante **Prova la demo** usa un account condiviso: usare dati fittizi. Gli account personali restano separati tramite i controlli del backend. Render può richiedere un'attesa al risveglio; `/health` conferma HTTP, non tutte le dipendenze.
 
 ## Avvio da un clone pulito
 
@@ -175,7 +175,7 @@ Eseguire i comandi dalla radice del repository. Scegliere uno dei due percorsi: 
 
 ### A. Ambiente completo con Docker Compose
 
-Prerequisiti: Docker Engine/Docker Desktop avviato, Docker Compose v2 e accesso HTTPS ai registry delle immagini e a Maven Central. Non servono JDK o MySQL installati sull'host.
+Prerequisiti: Docker Engine/Docker Desktop avviato, Docker Compose v2 e accesso HTTPS ai registry delle immagini e a Maven Central. Non servono JDK o PostgreSQL installati sull'host.
 
 1. Creare `.env` a partire dal modello, soltanto se il file non esiste già:
 
@@ -189,8 +189,7 @@ Prerequisiti: Docker Engine/Docker Desktop avviato, Docker Compose v2 e accesso 
 
    | Variabile | Utilizzo |
    | --- | --- |
-   | `DB_PASSWORD` | Password dell'utente MySQL applicativo `expense_tracker` |
-   | `MYSQL_ROOT_PASSWORD` | Password dell'amministratore MySQL, distinta da quella applicativa |
+   | `DB_PASSWORD` | Password dell'utente PostgreSQL applicativo `expense_tracker`, proprietario del database |
    | `SECRET_KEY` | Chiave JWT casuale di almeno 32 byte, da mantenere stabile tra i riavvii |
 
    Usare valori propri, senza commettere `.env`, già ignorato da Git e dal contesto Docker. Se disponibile, `openssl rand -hex 32` genera una chiave casuale adatta a `SECRET_KEY`. Le variabili già esportate nella shell hanno precedenza sui valori di `.env`.
@@ -203,7 +202,7 @@ Prerequisiti: Docker Engine/Docker Desktop avviato, Docker Compose v2 e accesso 
    docker compose up -d
    ```
 
-Compose include già backend, MySQL 8 e Mailpit. Configura il backend verso `mysql:3306` e `mailpit:1025`; MySQL non espone la porta 3306 sull'host. Il backend attende l'healthcheck MySQL, mentre per Mailpit attende l'avvio del container.
+Compose include già backend, PostgreSQL 17, Redis e Mailpit. Configura il backend verso `postgres:5432` e `mailpit:1025`; PostgreSQL non espone la porta 5432 sull'host. Il backend attende gli healthcheck di PostgreSQL e Redis, mentre per Mailpit attende l'avvio del container.
 
 - Backend: `http://localhost:8080`; controllo HTTP: `http://localhost:8080/health`.
 - Mailpit: `http://localhost:8025`, per leggere le email di verifica.
@@ -213,7 +212,7 @@ Controllare stato e log:
 
 ```bash
 docker compose ps
-docker compose logs --tail=100 backend mysql mailpit
+docker compose logs --tail=100 backend postgres mailpit
 ```
 
 `/health` conferma che il processo HTTP risponde; verificare anche login e lettura dati per controllare il database. Un errore di download legato a proxy o certificati va risolto configurando l'ambiente, mantenendo attiva la verifica TLS.
@@ -224,23 +223,20 @@ Arrestare senza eliminare i volumi:
 docker compose down
 ```
 
-Il volume MySQL conserva i dati. Le password di inizializzazione vengono applicate al primo avvio di un database vuoto: cambiare `.env` non aggiorna le credenziali di un volume già inizializzato. In quel caso occorre riallineare le credenziali con una procedura amministrativa, conservando i dati.
+Il volume PostgreSQL conserva i dati. Un volume MySQL di versioni precedenti non viene riutilizzato: `docker volume rm` sul vecchio `mysql_data` lo elimina, dopo aver salvato i dati che servono. Le password di inizializzazione vengono applicate al primo avvio di un database vuoto: cambiare `.env` non aggiorna le credenziali di un volume già inizializzato. In quel caso occorre riallineare le credenziali con una procedura amministrativa, conservando i dati.
 
 ### B. Backend nativo con Maven
 
-Prerequisiti: **JDK 21 completo** (`java` e `javac`, con `JAVA_HOME` coerente), MySQL raggiungibile e accesso HTTPS a Maven Central. Il Maven Wrapper incluso scarica Maven; non serve installarlo separatamente. Per registrare utenti serve anche SMTP compatibile con la configurazione locale: porta 1025, senza autenticazione e senza TLS.
+Prerequisiti: **JDK 21 completo** (`java` e `javac`, con `JAVA_HOME` coerente), PostgreSQL raggiungibile e accesso HTTPS a Maven Central. Il Maven Wrapper incluso scarica Maven; non serve installarlo separatamente. Per registrare utenti serve anche SMTP compatibile con la configurazione locale: porta 1025, senza autenticazione e senza TLS.
 
-Predisporre su un'istanza MySQL di sviluppo due database separati e un utente dedicato. Esempio da eseguire come amministratore, sostituendo la password segnaposto e adattando l'host dell'utente se MySQL è remoto:
+Predisporre su un'istanza PostgreSQL di sviluppo un utente dedicato e un database di sua proprietà (i test non lo usano: hanno un container proprio). Esempio da eseguire come amministratore (`psql -U postgres`), sostituendo la password segnaposto:
 
 ```sql
-CREATE DATABASE `expense-tracker`;
-CREATE DATABASE `expense-tracker-test`;
-CREATE USER 'expense_tracker'@'localhost' IDENTIFIED BY 'SOSTITUIRE_CON_PASSWORD_LOCALE';
-GRANT ALL PRIVILEGES ON `expense-tracker`.* TO 'expense_tracker'@'localhost';
-GRANT ALL PRIVILEGES ON `expense-tracker-test`.* TO 'expense_tracker'@'localhost';
+CREATE ROLE expense_tracker LOGIN PASSWORD 'SOSTITUIRE_CON_PASSWORD_LOCALE';
+CREATE DATABASE expense_tracker OWNER expense_tracker;
 ```
 
-Se database o utente esistono già, verificarne configurazione e permessi senza ricrearli. Lo schema è gestito da **Flyway** (`src/main/resources/db/migration`): all'avvio l'applicazione applica le migrazioni mancanti al database indicato e Hibernate (`ddl-auto=validate`) si limita a verificare che lo schema corrisponda alle entità. Un database già creato da versioni precedenti (con `ddl-auto=update`) viene marcato automaticamente alla versione 1 e riceve solo le migrazioni successive. Per modificare lo schema si aggiunge un nuovo file `V<n>__descrizione.sql`, mai si modifica uno già applicato.
+Se database o utente esistono già, verificarne configurazione e permessi senza ricrearli. Lo schema è gestito da **Flyway** (`src/main/resources/db/migration`): all'avvio l'applicazione applica le migrazioni mancanti al database indicato e Hibernate (`ddl-auto=validate`) si limita a verificare che lo schema corrisponda alle entità. Le migrazioni sono scritte per PostgreSQL; i database MySQL delle versioni precedenti non vengono convertiti. Per modificare lo schema si aggiunge un nuovo file `V<n>__descrizione.sql`, mai si modifica uno già applicato.
 
 Per Mailpit si può usare un'installazione locale oppure, se Docker è disponibile, avviare solo un container SMTP temporaneo in un altro terminale:
 
@@ -255,7 +251,7 @@ Il comando non monta volumi; `Ctrl+C` lo arresta. Non avviarlo se Mailpit del pe
 Linux/macOS:
 
 ```bash
-export DB_URL='jdbc:mysql://127.0.0.1:3306/expense-tracker'
+export DB_URL='jdbc:postgresql://127.0.0.1:5432/expense_tracker'
 export DB_USERNAME='expense_tracker'
 export DB_PASSWORD='SOSTITUIRE_CON_PASSWORD_LOCALE'
 export SECRET_KEY='SOSTITUIRE_CON_CHIAVE_CASUALE_DI_ALMENO_32_BYTE'
@@ -265,18 +261,18 @@ export MAIL_HOST='localhost'
 Windows PowerShell:
 
 ```powershell
-$env:DB_URL='jdbc:mysql://127.0.0.1:3306/expense-tracker'
+$env:DB_URL='jdbc:postgresql://127.0.0.1:5432/expense_tracker'
 $env:DB_USERNAME='expense_tracker'
 $env:DB_PASSWORD='SOSTITUIRE_CON_PASSWORD_LOCALE'
 $env:SECRET_KEY='SOSTITUIRE_CON_CHIAVE_CASUALE_DI_ALMENO_32_BYTE'
 $env:MAIL_HOST='localhost'
 ```
 
-`DB_PASSWORD` e `SECRET_KEY` sono obbligatorie. I default sono `DB_URL=jdbc:mysql://127.0.0.1:3306/expense-tracker`, `DB_USERNAME=root` e `MAIL_HOST=localhost`: gli esempi scelgono esplicitamente un utente dedicato. `MYSQL_ROOT_PASSWORD` serve al servizio MySQL di Compose, non al backend nativo. La porta SMTP predefinita è 1025; un servizio con autenticazione/TLS richiede configurazione aggiuntiva. Il MySQL dello stack Compose non è raggiungibile dall'host tramite porta 3306 con il Compose attuale.
+`DB_PASSWORD` e `SECRET_KEY` sono obbligatorie. I default sono `DB_URL=jdbc:postgresql://127.0.0.1:5432/expense_tracker`, `DB_USERNAME=expense_tracker` e `MAIL_HOST=localhost`. La porta SMTP predefinita è 1025; un servizio con autenticazione/TLS richiede configurazione aggiuntiva. Il PostgreSQL dello stack Compose non è raggiungibile dall'host tramite porta 5432 con il Compose attuale.
 
 ### Compilazione, test e avvio nativo
 
-I test di integrazione usano un **MySQL 8 usa-e-getta avviato da Testcontainers**: serve solo **Docker in esecuzione**. Il container è condiviso da tutti i test e viene rimosso a fine esecuzione. Le impostazioni dei test hanno la precedenza su `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e `SECRET_KEY`, quindi i test non toccano mai il database di sviluppo né quello della demo. L'invio email nei test di autenticazione è simulato e Redis non è necessario (se non raggiungibile la cache viene saltata).
+I test di integrazione usano un **PostgreSQL 17 usa-e-getta avviato da Testcontainers** (la versione predefinita di Neon): serve solo **Docker in esecuzione**. Il container è condiviso da tutti i test e viene rimosso a fine esecuzione. Le impostazioni dei test hanno la precedenza su `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e `SECRET_KEY`, quindi i test non toccano mai il database di sviluppo né quello della demo. L'invio email nei test di autenticazione è simulato e Redis non è necessario (se non raggiungibile la cache viene saltata).
 
 Compilare, eseguire i test e produrre il JAR (le variabili del database non servono ai test):
 
@@ -300,10 +296,11 @@ Il backend risponde su `http://localhost:8080`; arrestarlo con `Ctrl+C`. `FRONTE
 
 ## Verifiche e limiti
 
-Verifiche del **25 ottobre 2026**, con le righe del **10 novembre 2026** per la versione 1.1.0:
+Verifiche del **25 ottobre 2026**, con le righe del **10 novembre 2026** per la versione 1.1.0 e del **19 novembre 2026** per il passaggio a PostgreSQL:
 
 | Verifica | Esito |
 | --- | --- |
+| Suite backend completa dopo il passaggio a PostgreSQL (19 novembre), Java 21 e PostgreSQL 17 Testcontainers | 124 test passati, zero fallimenti/errori/skipped |
 | Suite backend completa, versione 1.2.0 (10 novembre), Java 21 e MySQL 8.0 Testcontainers | 122 test passati, zero fallimenti |
 | Percorso reale Impostazioni → email → nuova password → login sul sito pubblico, versione 1.2.0 (10 novembre) | Confermato dal proprietario |
 | CI GitHub Actions su master, versione 1.1.0 (10 novembre) | Riuscita |
@@ -316,7 +313,7 @@ Verifiche del **25 ottobre 2026**, con le righe del **10 novembre 2026** per la 
 | Caricamento delle nuove liste online | Confermato dal proprietario |
 | Correzione link entrate dalla dashboard | Deploy Vercel confermato |
 
-La suite include autenticazione/sessione, CRUD e isolamento spese, CRUD entrate e accessi altrui respinti, ricerca mese/testo/importo/data, contesto applicativo, flusso demo e trasporto Brevo simulato. I test MySQL hanno usato un database temporaneo locale, senza dati online; non attestano copertura di ogni caso limite o un audit di sicurezza.
+La suite include autenticazione/sessione, CRUD e isolamento spese, CRUD entrate e accessi altrui respinti, ricerca mese/testo/importo/data, contesto applicativo, flusso demo e trasporto Brevo simulato. I test su database (MySQL fino al 10 novembre, PostgreSQL dal 19 novembre) hanno usato un database temporaneo locale, senza dati online; non attestano copertura di ogni caso limite o un audit di sicurezza.
 
 Restano aperti il controllo visivo sistematico desktop/mobile nei due temi, il percorso completo nel browser locale con Angular e Mailpit e la build/avvio integrali del Compose originale in un ambiente senza i problemi TLS del proxy della precedente prova. La versione funzionale è conclusa; nuove funzionalità sono rinviate a versioni future.
 

@@ -16,10 +16,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        // Il login accetta lo username con qualsiasi combinazione di maiuscole, ma da qui in poi
+        // (token JWT, refresh, proprietà dei movimenti) circola il nome esatto salvato nel database.
+        User user = userRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
         return org.springframework.security.core.userdetails.User
-                .withUsername(username)
+                .withUsername(user.getUsername())
                 .password(user.getPassword())
                 .roles(String.valueOf(user.getRole()))
                 .build();

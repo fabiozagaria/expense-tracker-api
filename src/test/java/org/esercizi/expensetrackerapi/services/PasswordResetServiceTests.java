@@ -64,7 +64,7 @@ class PasswordResetServiceTests {
 
     @Test
     void unknownEmailDoesNothing() {
-        when(users.findByEmail("nobody@example.test")).thenReturn(Optional.empty());
+        when(users.findByEmailIgnoreCase("nobody@example.test")).thenReturn(Optional.empty());
 
         service.requestReset("nobody@example.test");
 
@@ -74,7 +74,7 @@ class PasswordResetServiceTests {
     @Test
     void unverifiedUserDoesNothing() {
         user.setEmailVerified(false);
-        when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(user.getEmail())).thenReturn(Optional.of(user));
 
         service.requestReset(user.getEmail());
 
@@ -83,7 +83,7 @@ class PasswordResetServiceTests {
 
     @Test
     void requestWithinCooldownIsSilentlyIgnored() {
-        when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(user.getEmail())).thenReturn(Optional.of(user));
         when(tokens.findFirstByUserOrderByCreateAtDesc(user))
                 .thenReturn(Optional.of(tokenCreatedAgo(Duration.ofSeconds(5))));
 
@@ -95,7 +95,7 @@ class PasswordResetServiceTests {
 
     @Test
     void storesOnlyTheHashAndEmailsTheRawToken() {
-        when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(user.getEmail())).thenReturn(Optional.of(user));
         when(tokens.findFirstByUserOrderByCreateAtDesc(user)).thenReturn(Optional.empty());
 
         service.requestReset(user.getEmail());

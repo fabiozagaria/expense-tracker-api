@@ -163,6 +163,33 @@ class AuthExpenseFlowTests {
                 .andExpect(status().isForbidden());
     }
 
+    /** Su PostgreSQL i confronti distinguono maiuscole e minuscole: il backend li rende case-insensitive. */
+    @Test
+    void usernameAndEmailIgnoreCaseOnRegistrationAndLogin() throws Exception {
+        registerAndVerify("CaseUser1", "Case.User1@Example.test", 1);
+
+        mvc.perform(post("/auth/register").contentType("application/json").content("""
+                {"username":"caseuser1","email":"another1@example.test","password":"secret123"}
+                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorName").value("USERNAME_ALREADY_EXISTS"));
+        mvc.perform(post("/auth/register").contentType("application/json").content("""
+                {"username":"caseuser2","email":"case.user1@example.TEST","password":"secret123"}
+                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorName").value("EMAIL_ALREADY_EXISTS"));
+
+        // Login con maiuscole diverse: il token porta il nome salvato, così /api/me e i movimenti funzionano.
+        String access = JsonPath.read(mvc.perform(post("/auth/login").contentType("application/json").content("""
+                        {"username":"CASEUSER1","password":"secret123"}
+                        """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(), "$.accessToken");
+        mvc.perform(get("/api/me").header("Authorization", "Bearer " + access))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("CaseUser1"));
+    }
+
     @Test
     void registrationRejectsBlankEmailWithoutSavingUserOrSendingMail() throws Exception {
         mvc.perform(post("/auth/register").contentType("application/json").content("""

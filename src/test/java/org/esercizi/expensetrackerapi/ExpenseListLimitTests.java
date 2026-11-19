@@ -77,7 +77,7 @@ class ExpenseListLimitTests {
         LocalDate newest = LocalDate.now().minusDays(1);
         List<Object[]> rows = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            rows.add(new Object[]{"1.00", "other", Date.valueOf(newest.minusDays(count - 1 - i)), "spesa-" + i, owner.getId()});
+            rows.add(new Object[]{new java.math.BigDecimal("1.00"), "other", Date.valueOf(newest.minusDays(count - 1 - i)), "spesa-" + i, owner.getId()});
         }
         jdbc.batchUpdate("insert into expenses (amount, category, date, title, user_id) values (?, ?, ?, ?, ?)", rows);
     }

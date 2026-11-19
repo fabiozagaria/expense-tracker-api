@@ -69,7 +69,7 @@ class RefreshTokenReuseDetectionTests {
 
         // Il token ruotato risale a oltre la finestra di tolleranza (relativo al valore salvato:
         // niente conversioni di fuso orario).
-        jdbc.update("update refresh set revoke_at = revoke_at - interval 1 minute "
+        jdbc.update("update refresh set revoke_at = revoke_at - interval '1 minute' "
                 + "where revoke_at is not null and user_id = (select id from users where username = ?)", username);
 
         assertThatThrownBy(() -> authService.refresh(stolen)).isInstanceOf(InvalidRefreshTokenException.class);
