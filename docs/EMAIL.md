@@ -30,6 +30,6 @@ Il `messageId` dimostra solo l'accettazione della richiesta, non la consegna in 
 
 ## Transazioni e verifiche
 
-Prima dell'invio, la registrazione forza il flush dei vincoli MySQL. Un fallimento del trasporto annulla utente e token; un nuovo tentativo manuale può quindi riutilizzare lo stesso username. Invio e commit non sono atomici: un timeout può nascondere un invio già accettato, oppure il commit successivo può fallire, lasciando un link inutilizzabile. Non viene promesso un comportamento exactly-once.
+Prima dell'invio, la registrazione forza il flush dei vincoli del database. Un fallimento del trasporto annulla utente e token; un nuovo tentativo manuale può quindi riutilizzare lo stesso username. Invio e commit non sono atomici: un timeout può nascondere un invio già accettato, oppure il commit successivo può fallire, lasciando un link inutilizzabile. Non viene promesso un comportamento exactly-once.
 
-I test del trasporto usano risposte HTTP simulate e un mittente sintetico. I test di registrazione usano MySQL isolato e `JavaMailSender` simulato, senza inviare email reali. Oltre a errori e rollback, verificano che la configurazione Brevo possa avviarsi senza SMTP e che quella disabilitata non annunci una registrazione funzionante.
+I test del trasporto usano risposte HTTP simulate e un mittente sintetico. I test di registrazione usano PostgreSQL isolato (Testcontainers) e `JavaMailSender` simulato, senza inviare email reali. Oltre a errori e rollback, verificano che la configurazione Brevo possa avviarsi senza SMTP e che quella disabilitata non annunci una registrazione funzionante.

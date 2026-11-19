@@ -1,2 +1,2 @@
 org.springframework.context.ApplicationContextInitializer=\
-org.esercizi.expensetrackerapi.support.MySqlTestContainerInitializer
+org.esercizi.expensetrackerapi.support.PostgresTestContainerInitializer

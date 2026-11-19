@@ -44,7 +44,7 @@ class EmailRegistrationFailureTests {
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.errorName").value("EMAIL_DELIVERY_FAILED"))
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("private-provider"))));
-        assertThat(users.existsByUsername(username)).isFalse();
+        assertThat(users.existsByUsernameIgnoreCase(username)).isFalse();
         assertThat(tokens.count()).isEqualTo(tokenCount);
         doNothing().when(mailSender).send(any(SimpleMailMessage.class));
         try {

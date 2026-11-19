@@ -24,7 +24,7 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      # Testcontainers avvia MySQL da solo: il runner ha già Docker.
+      # Testcontainers avvia PostgreSQL da solo: il runner ha già Docker.
       - name: Maven verify
         run: ./mvnw -B verify
 

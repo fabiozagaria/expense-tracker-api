@@ -43,10 +43,10 @@ public class AuthService {
 
     @Transactional
     public RegistrationResponse register(UserCreateRequest request) throws NoSuchAlgorithmException {
-        if (userRepository.existsByUsername(request.username())) {
+        if (userRepository.existsByUsernameIgnoreCase(request.username())) {
             throw new RegistrationConflictException(RegistrationConflictException.Field.USERNAME);
         }
-        if (userRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new RegistrationConflictException(RegistrationConflictException.Field.EMAIL);
         }
         String username = request.username();
@@ -72,7 +72,7 @@ public class AuthService {
      */
     @Transactional
     public void resendVerification(String email) throws NoSuchAlgorithmException {
-        User user = userRepository.findByEmail(email).orElse(null);
+        User user = userRepository.findByEmailIgnoreCase(email).orElse(null);
         if (user == null || user.isEmailVerified()) {
             return;
         }

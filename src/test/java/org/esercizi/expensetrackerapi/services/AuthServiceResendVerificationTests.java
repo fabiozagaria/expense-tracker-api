@@ -59,7 +59,7 @@ class AuthServiceResendVerificationTests {
 
     @Test
     void unknownEmailDoesNothing() throws Exception {
-        when(users.findByEmail("nobody@example.test")).thenReturn(Optional.empty());
+        when(users.findByEmailIgnoreCase("nobody@example.test")).thenReturn(Optional.empty());
 
         service.resendVerification("nobody@example.test");
 
@@ -69,7 +69,7 @@ class AuthServiceResendVerificationTests {
     @Test
     void alreadyVerifiedUserDoesNothing() throws Exception {
         user.setEmailVerified(true);
-        when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(user.getEmail())).thenReturn(Optional.of(user));
 
         service.resendVerification(user.getEmail());
 
@@ -78,7 +78,7 @@ class AuthServiceResendVerificationTests {
 
     @Test
     void requestWithinCooldownIsSilentlyIgnored() throws Exception {
-        when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(user.getEmail())).thenReturn(Optional.of(user));
         when(tokens.findFirstByUserOrderByCreateAtDesc(user))
                 .thenReturn(Optional.of(tokenCreatedAgo(Duration.ofSeconds(10))));
 
@@ -90,7 +90,7 @@ class AuthServiceResendVerificationTests {
 
     @Test
     void expiredTokenIsReplacedAndNewEmailSent() throws Exception {
-        when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(user.getEmail())).thenReturn(Optional.of(user));
         when(tokens.findFirstByUserOrderByCreateAtDesc(user))
                 .thenReturn(Optional.of(tokenCreatedAgo(Duration.ofMinutes(30))));
         when(emailService.createVerificationToken(user)).thenReturn("new-raw-token");
@@ -107,7 +107,7 @@ class AuthServiceResendVerificationTests {
 
     @Test
     void userWithoutAnyTokenGetsOne() throws Exception {
-        when(users.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(user.getEmail())).thenReturn(Optional.of(user));
         when(tokens.findFirstByUserOrderByCreateAtDesc(user)).thenReturn(Optional.empty());
         when(emailService.createVerificationToken(user)).thenReturn("raw");
 

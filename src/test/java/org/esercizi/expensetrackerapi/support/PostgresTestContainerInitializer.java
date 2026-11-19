@@ -5,24 +5,24 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Profiles;
 import org.springframework.test.context.support.TestPropertySourceUtils;
-import org.testcontainers.mysql.MySQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
- * Fornisce a ogni contesto Spring dei test un MySQL usa-e-getta, condiviso da tutti i contesti
+ * Fornisce a ogni contesto Spring dei test un PostgreSQL usa-e-getta (stessa versione maggiore di Neon), condiviso da tutti i contesti
  * (si avvia una volta sola per JVM; Ryuk lo rimuove a fine esecuzione).
  *
  * Registrato in META-INF/spring.factories dei test. Le proprietà applicate qui hanno la precedenza
  * su variabili d'ambiente e application.properties: i test non possono più colpire un database
  * "vero" per errore (DB_URL, DB_PASSWORD e SECRET_KEY dell'ambiente vengono ignorati).
  */
-public class MySqlTestContainerInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+public class PostgresTestContainerInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
     /** Avviato al primo uso: i contesti col profilo demo (H2 in memoria) non ne hanno bisogno. */
     private static final class Holder {
-        static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.0");
+        static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine");
 
         static {
-            MYSQL.start();
+            POSTGRES.start();
         }
     }
 
@@ -31,9 +31,9 @@ public class MySqlTestContainerInitializer implements ApplicationContextInitiali
         // Il profilo demo usa H2 in memoria (application-demo.properties): lì il datasource non si tocca.
         if (!context.getEnvironment().acceptsProfiles(Profiles.of("demo"))) {
             TestPropertyValues.of(
-                    "spring.datasource.url=" + Holder.MYSQL.getJdbcUrl(),
-                    "spring.datasource.username=" + Holder.MYSQL.getUsername(),
-                    "spring.datasource.password=" + Holder.MYSQL.getPassword()
+                    "spring.datasource.url=" + Holder.POSTGRES.getJdbcUrl(),
+                    "spring.datasource.username=" + Holder.POSTGRES.getUsername(),
+                    "spring.datasource.password=" + Holder.POSTGRES.getPassword()
             ).applyTo(context);
         }
         TestPropertyValues.of("jwt.secret=test-only-secret-key-that-is-at-least-32-bytes-long").applyTo(context);

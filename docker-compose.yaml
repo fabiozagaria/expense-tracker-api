@@ -8,17 +8,16 @@ services:
       timeout: 3s
       retries: 10
 
-  mysql:
-    image: mysql:8.0
+  postgres:
+    image: postgres:17-alpine
     environment:
-      MYSQL_DATABASE: expense-tracker
-      MYSQL_USER: expense_tracker
-      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      POSTGRES_DB: expense_tracker
+      POSTGRES_USER: expense_tracker
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      test: ["CMD-SHELL", "pg_isready -U expense_tracker -d expense_tracker"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -34,7 +33,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/expense-tracker
+      DB_URL: jdbc:postgresql://postgres:5432/expense_tracker
       DB_USERNAME: expense_tracker
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
@@ -44,10 +43,10 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      mysql:
+      postgres:
         condition: service_healthy
       mailpit:
         condition: service_started
 
 volumes:
-  mysql_data:
+  postgres_data:

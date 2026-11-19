@@ -40,7 +40,7 @@ public class PasswordResetService {
      */
     @Transactional
     public void requestReset(String email) {
-        User user = users.findByEmail(email).orElse(null);
+        User user = users.findByEmailIgnoreCase(email).orElse(null);
         if (user == null || !user.isEmailVerified()) {
             return;
         }
