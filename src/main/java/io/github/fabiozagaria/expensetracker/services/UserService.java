@@ -1,0 +1,45 @@
+package io.github.fabiozagaria.expensetracker.services;
+
+import jakarta.persistence.EntityManager;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import io.github.fabiozagaria.expensetracker.model.user.Role;
+import io.github.fabiozagaria.expensetracker.model.user.User;
+import io.github.fabiozagaria.expensetracker.repository.UserRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    private final UserRepository userRepository;
+    private final EntityManager entityManager;
+
+    public User findById(long id) {
+        return userRepository.findById(id)
+                .orElseThrow();
+    }
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
+    public void save(User user) {
+        userRepository.save(user);
+    }
+
+
+    public User create(@NotNull String username, @NotNull String pswH, @NotNull String email) {
+        return User.builder()
+                .username(username)
+                .password(pswH)
+                .email(email)
+                .emailVerified(false)
+                .role(Role.USER)
+                .expenseList(List.of())
+                .build();
+    }
+}

@@ -8,7 +8,7 @@
         <version>4.1.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>org.esercizi</groupId>
+    <groupId>io.github.fabiozagaria</groupId>
     <artifactId>expense-tracker-api</artifactId>
     <version>1.3.0</version>
     <name>expense-tracker-api</name>

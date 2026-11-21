@@ -1,0 +1,25 @@
+package io.github.fabiozagaria.expensetracker.dto.user;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import io.github.fabiozagaria.expensetracker.validation.MaxUtf8Bytes;
+
+public record UserCreateRequest(
+        @NotBlank
+        @Size(max = 20, min = 6)
+        String username,
+
+        @NotBlank
+        @Email
+        @Size(max = 50)
+        String email,
+
+        @NotBlank
+        @Size(min = 6)
+        @MaxUtf8Bytes(72)
+        String password
+) {
+}
+
