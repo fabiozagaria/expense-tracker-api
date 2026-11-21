@@ -1,0 +1,22 @@
+package io.github.fabiozagaria.expensetracker.validation;
+
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+
+import java.nio.charset.StandardCharsets;
+
+public class MaxUtf8BytesValidator implements ConstraintValidator<MaxUtf8Bytes, String> {
+
+    private int maxBytes;
+
+    @Override
+    public void initialize(MaxUtf8Bytes constraint) {
+        this.maxBytes = constraint.value();
+    }
+
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        // null è valido: ci pensa @NotBlank
+        return value == null || value.getBytes(StandardCharsets.UTF_8).length <= maxBytes;
+    }
+}

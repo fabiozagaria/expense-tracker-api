@@ -45,7 +45,7 @@ Il controller gestisce HTTP e validazione del DTO; il service applica le regole 
 
 | Percorso | Responsabilità |
 | --- | --- |
-| `src/main/java/org/esercizi/expensetrackerapi/controllers/` | Endpoint auth, spese, entrate, dashboard, demo e health |
+| `src/main/java/io/github/fabiozagaria/expensetracker/controllers/` | Endpoint auth, spese, entrate, dashboard, demo e health |
 | `services/` nello stesso package | Logica applicativa, mapping DTO e ricerca tramite `MovementSearch` |
 | `services/mail/` | `VerificationEmailSender`, implementazioni SMTP e Brevo |
 | `repository/` | Repository JPA, query per proprietario e aggregazioni |
